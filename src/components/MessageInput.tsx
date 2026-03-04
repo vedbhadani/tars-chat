@@ -1,15 +1,39 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { Id } from "../../convex/_generated/dataModel";
 
-export function MessageInput() {
+interface MessageInputProps {
+    conversationId: Id<"conversations">;
+    senderId: Id<"users">;
+}
+
+export function MessageInput({ conversationId, senderId }: MessageInputProps) {
     const [message, setMessage] = useState("");
+    const [isSending, setIsSending] = useState(false);
+    const sendMessage = useMutation(api.messages.send);
 
-    const handleSend = () => {
-        if (!message.trim()) return;
-        // TODO: Send message via Convex mutation
-        console.log("Send:", message);
-        setMessage("");
+    const handleSend = async () => {
+        const content = message.trim();
+        if (!content || isSending) return;
+
+        setIsSending(true);
+        setMessage(""); // Clear immediately for snappy UX
+
+        try {
+            await sendMessage({
+                conversationId,
+                senderId,
+                content,
+            });
+        } catch (err) {
+            console.error("Failed to send message:", err);
+            setMessage(content); // Restore on failure
+        } finally {
+            setIsSending(false);
+        }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -22,26 +46,6 @@ export function MessageInput() {
     return (
         <div className="border-t border-border px-4 py-3">
             <div className="mx-auto flex max-w-2xl items-center gap-2">
-                {/* Attachment button placeholder */}
-                <button
-                    className="shrink-0 rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    aria-label="Attach file"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
-                        <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-                    </svg>
-                </button>
-
                 {/* Text input */}
                 <input
                     type="text"
@@ -49,17 +53,31 @@ export function MessageInput() {
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Type a message…"
-                    className="flex-1 rounded-xl border border-input bg-muted/50 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    disabled={isSending}
+                    className="flex-1 rounded-xl border border-input bg-muted/50 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 transition-all"
                 />
 
                 {/* Send button */}
                 <button
                     onClick={handleSend}
-                    disabled={!message.trim()}
-                    className="shrink-0 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed"
+                    disabled={!message.trim() || isSending}
+                    className="shrink-0 rounded-xl bg-primary p-2.5 text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
                     aria-label="Send message"
                 >
-                    Send
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    >
+                        <path d="m22 2-7 20-4-9-9-4Z" />
+                        <path d="M22 2 11 13" />
+                    </svg>
                 </button>
             </div>
         </div>
