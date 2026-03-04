@@ -1,20 +1,34 @@
 "use client";
 
 import { SearchBar } from "@/components/SearchBar";
+import { UserButton, useUser } from "@clerk/nextjs";
 
 export function ChatSidebar() {
+    const { user } = useUser();
+
     return (
         <aside className="flex h-full w-80 flex-col border-r border-border bg-sidebar">
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-border px-4 py-4">
-                <h2 className="text-lg font-semibold text-sidebar-foreground">
-                    Conversations
-                </h2>
+            {/* User profile header */}
+            <div className="flex items-center gap-3 border-b border-border px-4 py-4">
+                <UserButton
+                    appearance={{
+                        elements: {
+                            avatarBox: "h-9 w-9",
+                        },
+                    }}
+                />
+                <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-sidebar-foreground">
+                        {user?.fullName ?? "Loading..."}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                        {user?.primaryEmailAddress?.emailAddress ?? ""}
+                    </p>
+                </div>
                 <button
                     className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                     aria-label="New conversation"
                 >
-                    {/* TODO: Replace with icon */}
                     <span className="text-xl leading-none">+</span>
                 </button>
             </div>

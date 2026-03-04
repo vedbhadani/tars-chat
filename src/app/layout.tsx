@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 const inter = Inter({
@@ -8,9 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "TARS Chat",
-  description:
-    "A real-time chat application powered by Next.js, Clerk, and Convex",
+  title: "Realtime Chat",
+  description: "Connect and message people instantly",
 };
 
 export default function RootLayout({
@@ -19,14 +19,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.variable} font-sans antialiased`}>
-        {/* 
-          TODO: Wrap with Clerk <ClerkProvider> and Convex <ConvexProvider>
-          once environment variables are configured.
-        */}
-        <div className="flex min-h-screen flex-col">{children}</div>
-      </body>
-    </html>
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: "#7c3aed",
+          colorBackground: "#18181b",
+          colorInputBackground: "#27272a",
+          colorText: "#f4f4f5",
+        },
+      }}
+    >
+      <html lang="en" className="dark">
+        <body className={`${inter.variable} font-sans antialiased`}>
+          <div className="flex min-h-screen flex-col">{children}</div>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

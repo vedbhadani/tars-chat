@@ -1,37 +1,52 @@
-import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import {
+  SignInButton,
+  SignUpButton,
+} from "@clerk/nextjs";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { userId } = await auth();
+
+  // Logged-in users go straight to chat
+  if (userId) {
+    redirect("/chat");
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-8 px-6 text-center">
-        {/* Logo / Brand */}
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-2xl font-bold text-primary-foreground">
-            T
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-2xl shadow-primary/5">
+        {/* Brand */}
+        <div className="mb-8 flex flex-col items-center gap-3 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-2xl font-bold text-primary-foreground shadow-lg shadow-primary/25">
+            💬
           </div>
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">
-            TARS Chat
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Realtime Chat
           </h1>
+          <p className="text-sm text-muted-foreground">
+            Connect and message people instantly
+          </p>
         </div>
 
-        {/* Tagline */}
-        <p className="max-w-md text-lg text-muted-foreground">
-          Real-time messaging powered by Next.js, Clerk authentication, and
-          Convex backend.
-        </p>
+        {/* Auth buttons */}
+        <div className="flex flex-col gap-3">
+          <SignInButton mode="modal">
+            <button className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              Sign In
+            </button>
+          </SignInButton>
 
-        {/* CTA */}
-        <Link
-          href="/chat"
-          className="inline-flex h-12 items-center justify-center rounded-lg bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          Open Chat →
-        </Link>
+          <SignUpButton mode="modal">
+            <button className="w-full rounded-xl border border-border bg-secondary py-3 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              Create Account
+            </button>
+          </SignUpButton>
+        </div>
 
-        {/* Placeholder auth hint */}
-        <p className="text-sm text-muted-foreground/60">
-          {/* TODO: Replace with Clerk <SignInButton> */}
-          Sign in to get started
+        {/* Footer */}
+        <p className="mt-6 text-center text-xs text-muted-foreground/60">
+          By continuing you agree to our Terms of Service
         </p>
       </div>
     </div>

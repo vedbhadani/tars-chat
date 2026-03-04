@@ -22,3 +22,38 @@ export const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL ?? "";
  * import { ConvexReactClient } from "convex/react";
  * export const convexClient = new ConvexReactClient(CONVEX_URL);
  */
+
+// ── Clerk ↔ Convex User Sync Helper ─────────────────────
+//
+// Call this after a user signs in / signs up via Clerk webhook
+// or from a client-side effect, to upsert the user into Convex.
+//
+// Example usage in a "use client" component:
+//
+//   import { useUser } from "@clerk/nextjs";
+//   import { useMutation } from "convex/react";
+//   import { api } from "@/convex/_generated/api";
+//
+//   const { user } = useUser();
+//   const createOrUpdateUser = useMutation(api.users.createUser);
+//
+//   useEffect(() => {
+//     if (user) {
+//       createOrUpdateUser({
+//         clerkId: user.id,
+//         name: user.fullName ?? user.username ?? "Anonymous",
+//         email: user.primaryEmailAddress?.emailAddress ?? "",
+//         imageUrl: user.imageUrl,
+//       });
+//     }
+//   }, [user, createOrUpdateUser]);
+
+/**
+ * Type representing the Clerk user fields we sync to Convex.
+ */
+export interface SyncableUser {
+    clerkId: string;
+    name: string;
+    email: string;
+    imageUrl?: string;
+}
