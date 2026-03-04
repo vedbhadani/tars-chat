@@ -50,15 +50,28 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
             : "skip"
     ) ?? [];
 
+    // Real-time typing indicator subscription
+    const typingUsers = useQuery(
+        api.typing.getTyping,
+        conversationId
+            ? { conversationId: conversationId as Id<"conversations"> }
+            : "skip"
+    ) ?? [];
+
+    // Filter out self from typing indicators
+    const othersTyping = typingUsers.filter(
+        (t) => t && currentUser && t.userId !== currentUser._id
+    );
+
     // Sort messages by createdAt
     const sortedMessages = [...messages]
         .filter((m) => !m.deleted)
         .sort((a, b) => a.createdAt - b.createdAt);
 
-    // Auto-scroll to newest message
+    // Auto-scroll to newest message or when typing indicator appears
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [sortedMessages.length]);
+    }, [sortedMessages.length, othersTyping.length]);
 
     return (
         <div className="flex flex-1 flex-col bg-background">
@@ -139,6 +152,25 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                                 />
                             ))
                         )}
+
+                        {/* Typing indicator */}
+                        {othersTyping.length > 0 && (
+                            <div className="flex w-full justify-start">
+                                <div className="flex items-center gap-2 rounded-2xl rounded-bl-md bg-muted px-4 py-3">
+                                    <span className="text-xs text-muted-foreground">
+                                        {othersTyping.map((t) => t?.name).join(", ")}
+                                        {othersTyping.length === 1 ? " is" : " are"} typing
+                                    </span>
+                                    {/* Animated dots */}
+                                    <span className="flex items-center gap-0.5">
+                                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60" style={{ animationDelay: "0ms" }} />
+                                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60" style={{ animationDelay: "150ms" }} />
+                                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60" style={{ animationDelay: "300ms" }} />
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Invisible anchor for auto-scroll */}
                         <div ref={messagesEndRef} />
                     </div>

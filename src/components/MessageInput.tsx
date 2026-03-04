@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
@@ -14,13 +14,38 @@ export function MessageInput({ conversationId, senderId }: MessageInputProps) {
     const [message, setMessage] = useState("");
     const [isSending, setIsSending] = useState(false);
     const sendMessage = useMutation(api.messages.send);
+    const startTyping = useMutation(api.typing.startTyping);
+    const stopTyping = useMutation(api.typing.stopTyping);
+    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Debounced typing indicator — fires on every keystroke,
+    // but auto-clears after 2 seconds of inactivity
+    const handleTyping = useCallback(() => {
+        startTyping({ conversationId, userId: senderId }).catch(() => { });
+
+        // Clear existing timeout
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+
+        // Set a new timeout to stop typing after 2 seconds
+        typingTimeoutRef.current = setTimeout(() => {
+            stopTyping({ conversationId, userId: senderId }).catch(() => { });
+        }, 2000);
+    }, [conversationId, senderId, startTyping, stopTyping]);
 
     const handleSend = async () => {
         const content = message.trim();
         if (!content || isSending) return;
 
         setIsSending(true);
-        setMessage(""); // Clear immediately for snappy UX
+        setMessage("");
+
+        // Clear typing indicator immediately on send
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+        stopTyping({ conversationId, userId: senderId }).catch(() => { });
 
         try {
             await sendMessage({
@@ -30,9 +55,16 @@ export function MessageInput({ conversationId, senderId }: MessageInputProps) {
             });
         } catch (err) {
             console.error("Failed to send message:", err);
-            setMessage(content); // Restore on failure
+            setMessage(content);
         } finally {
             setIsSending(false);
+        }
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setMessage(e.target.value);
+        if (e.target.value.trim()) {
+            handleTyping();
         }
     };
 
@@ -50,7 +82,7 @@ export function MessageInput({ conversationId, senderId }: MessageInputProps) {
                 <input
                     type="text"
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     placeholder="Type a message…"
                     disabled={isSending}
