@@ -2,9 +2,24 @@
 
 import { SearchBar } from "@/components/SearchBar";
 import { UserButton, useUser } from "@clerk/nextjs";
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { useEffect } from "react";
 
 export function ChatSidebar() {
-    const { user } = useUser();
+    const { user, isLoaded } = useUser();
+    const createUserIfNotExists = useMutation(api.users.createUserIfNotExists);
+
+    // Sync user to Convex on login
+    useEffect(() => {
+        if (isLoaded && user) {
+            createUserIfNotExists({
+                clerkId: user.id,
+                name: user.fullName || user.username || "Unknown",
+                image: user.imageUrl,
+            }).catch((err) => console.error("Failed to sync user to Convex:", err));
+        }
+    }, [isLoaded, user, createUserIfNotExists]);
 
     return (
         <aside className="flex h-full w-80 flex-col border-r border-border bg-sidebar">

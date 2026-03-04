@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ConvexClientProvider } from "@/components/providers/ConvexClientProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -31,7 +32,9 @@ export default function RootLayout({
     >
       <html lang="en" className="dark">
         <body className={`${inter.variable} font-sans antialiased`}>
-          <div className="flex min-h-screen flex-col">{children}</div>
+          <ConvexClientProvider>
+            <div className="flex min-h-screen flex-col">{children}</div>
+          </ConvexClientProvider>
         </body>
       </html>
     </ClerkProvider>

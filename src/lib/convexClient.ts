@@ -1,52 +1,32 @@
 /**
- * Convex Client Configuration
+ * Convex Client Utilities
  *
- * This file sets up the Convex client for use throughout the application.
- * TODO: Initialize once CONVEX_URL environment variable is configured.
+ * Helper types and constants for working with Convex in this project.
  *
- * Usage (once configured):
- *   import { ConvexProvider, ConvexReactClient } from "convex/react";
- *   const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+ * ── Environment Variables ───────────────────────────────
+ * Convex requires the following environment variables in .env.local:
  *
- * Then wrap your app with:
- *   <ConvexProvider client={convex}>...</ConvexProvider>
+ *   CONVEX_DEPLOYMENT=dev:<your-deployment-name>
+ *   NEXT_PUBLIC_CONVEX_URL=https://<your-deployment>.convex.cloud
+ *
+ * These are automatically set when you run `npx convex dev`.
+ *
+ * ── Using Convex in Components ──────────────────────────
+ * The app is wrapped with <ConvexClientProvider> in layout.tsx,
+ * so you can use Convex hooks anywhere in client components:
+ *
+ *   import { useQuery, useMutation } from "convex/react";
+ *   import { api } from "../../convex/_generated/api";
+ *
+ *   // Read data (auto-updates in real-time)
+ *   const messages = useQuery(api.messages.list);
+ *
+ *   // Write data
+ *   const sendMessage = useMutation(api.messages.send);
+ *   await sendMessage({ content: "Hello!" });
  */
 
-// Placeholder: Convex URL will be read from environment variables
 export const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL ?? "";
-
-/**
- * Initialize the Convex client.
- * Uncomment below once `convex` package is fully configured:
- *
- * import { ConvexReactClient } from "convex/react";
- * export const convexClient = new ConvexReactClient(CONVEX_URL);
- */
-
-// ── Clerk ↔ Convex User Sync Helper ─────────────────────
-//
-// Call this after a user signs in / signs up via Clerk webhook
-// or from a client-side effect, to upsert the user into Convex.
-//
-// Example usage in a "use client" component:
-//
-//   import { useUser } from "@clerk/nextjs";
-//   import { useMutation } from "convex/react";
-//   import { api } from "@/convex/_generated/api";
-//
-//   const { user } = useUser();
-//   const createOrUpdateUser = useMutation(api.users.createUser);
-//
-//   useEffect(() => {
-//     if (user) {
-//       createOrUpdateUser({
-//         clerkId: user.id,
-//         name: user.fullName ?? user.username ?? "Anonymous",
-//         email: user.primaryEmailAddress?.emailAddress ?? "",
-//         imageUrl: user.imageUrl,
-//       });
-//     }
-//   }, [user, createOrUpdateUser]);
 
 /**
  * Type representing the Clerk user fields we sync to Convex.
