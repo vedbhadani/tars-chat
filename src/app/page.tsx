@@ -31,13 +31,13 @@ export default async function HomePage() {
 
         {/* Auth buttons */}
         <div className="flex flex-col gap-3">
-          <SignInButton mode="modal">
+          <SignInButton mode="modal" forceRedirectUrl="/chat" fallbackRedirectUrl="/chat" asChild>
             <button className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
               Sign In
             </button>
           </SignInButton>
 
-          <SignUpButton mode="modal">
+          <SignUpButton mode="modal" forceRedirectUrl="/chat" fallbackRedirectUrl="/chat" asChild>
             <button className="w-full rounded-xl border border-border bg-secondary py-3 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
               Create Account
             </button>
