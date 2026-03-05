@@ -7,6 +7,7 @@ import { Id } from "../../convex/_generated/dataModel";
 const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢"];
 
 interface ReactionData {
+    emoji: string;
     count: number;
     userIds: string[];
 }
@@ -18,7 +19,7 @@ interface MessageBubbleProps {
     timestamp?: number;
     deleted?: boolean;
     onDelete?: (messageId: Id<"messages">) => void;
-    reactions?: Record<string, ReactionData>;
+    reactions?: ReactionData[];
     currentUserId?: string;
     onToggleReaction?: (messageId: Id<"messages">, emoji: string) => void;
 }
@@ -47,7 +48,7 @@ export function MessageBubble({
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     // Check if any reactions exist for this message
-    const hasReactions = reactions && Object.keys(reactions).length > 0;
+    const hasReactions = reactions && reactions.length > 0;
 
     // Deleted message tombstone
     if (deleted) {
@@ -108,12 +109,12 @@ export function MessageBubble({
                 {/* Reaction pills */}
                 {hasReactions && (
                     <div className={cn("mt-1 flex flex-wrap gap-1", isOwn ? "justify-end" : "justify-start")}>
-                        {Object.entries(reactions!).map(([emoji, data]) => {
-                            const isMine = currentUserId ? data.userIds.includes(currentUserId) : false;
+                        {reactions!.map((r) => {
+                            const isMine = currentUserId ? r.userIds.includes(currentUserId) : false;
                             return (
                                 <button
-                                    key={emoji}
-                                    onClick={() => onToggleReaction?.(messageId, emoji)}
+                                    key={r.emoji}
+                                    onClick={() => onToggleReaction?.(messageId, r.emoji)}
                                     className={cn(
                                         "flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-all hover:scale-105 active:scale-95",
                                         isMine
@@ -121,8 +122,8 @@ export function MessageBubble({
                                             : "bg-muted text-muted-foreground hover:bg-muted/80"
                                     )}
                                 >
-                                    <span>{emoji}</span>
-                                    <span className="font-medium">{data.count}</span>
+                                    <span>{r.emoji}</span>
+                                    <span className="font-medium">{r.count}</span>
                                 </button>
                             );
                         })}

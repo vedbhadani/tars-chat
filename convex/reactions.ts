@@ -29,7 +29,7 @@ export const getForConversation = query({
         // Fetch all reactions for these messages
         const reactionsMap: Record<
             string,
-            Record<string, { count: number; userIds: string[] }>
+            Array<{ emoji: string; count: number; userIds: string[] }>
         > = {};
 
         for (const messageId of messageIds) {
@@ -40,6 +40,7 @@ export const getForConversation = query({
 
             if (reactions.length === 0) continue;
 
+            // Group by emoji into a temp map, then convert to array
             const grouped: Record<string, { count: number; userIds: string[] }> = {};
             for (const r of reactions) {
                 if (!grouped[r.emoji]) {
@@ -49,7 +50,10 @@ export const getForConversation = query({
                 grouped[r.emoji].userIds.push(r.userId);
             }
 
-            reactionsMap[messageId] = grouped;
+            // Convert to array format so Convex doesn't use emojis as field names
+            reactionsMap[messageId] = Object.entries(grouped).map(
+                ([emoji, data]) => ({ emoji, count: data.count, userIds: data.userIds })
+            );
         }
 
         return reactionsMap;
