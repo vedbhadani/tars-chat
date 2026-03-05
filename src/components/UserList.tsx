@@ -45,13 +45,13 @@ export function UserList({ searchQuery, onConversationReady }: UserListProps) {
 
     if (allUsers === undefined) {
         return (
-            <div className="flex flex-col gap-0.5 mt-2">
+            <div className="flex flex-col gap-1 mt-2">
                 {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2.5 animate-pulse">
-                        <div className="h-10 w-10 shrink-0 rounded-full bg-muted" />
-                        <div className="flex-1 space-y-2 py-1">
-                            <div className="h-4 w-24 rounded bg-muted" />
-                            <div className="h-3 w-16 rounded bg-muted" />
+                    <div key={i} className="flex items-center gap-3 rounded-xl px-3 py-2.5 animate-pulse">
+                        <div className="h-10 w-10 shrink-0 rounded-full bg-muted/60" />
+                        <div className="flex-1 space-y-2 py-0.5">
+                            <div className="h-3.5 w-24 rounded-md bg-muted/60" />
+                            <div className="h-3 w-16 rounded-md bg-muted/40" />
                         </div>
                     </div>
                 ))}
@@ -62,7 +62,13 @@ export function UserList({ searchQuery, onConversationReady }: UserListProps) {
     if (filteredUsers.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-                <p className="text-sm text-muted-foreground">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                    </svg>
+                </div>
+                <p className="text-sm font-medium text-muted-foreground">
                     {searchQuery ? "No users found" : "No other users yet"}
                 </p>
             </div>
@@ -71,14 +77,14 @@ export function UserList({ searchQuery, onConversationReady }: UserListProps) {
 
     return (
         <div className="flex flex-col gap-0.5">
-            <h4 className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <h4 className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
                 People ({filteredUsers.length})
             </h4>
             {filteredUsers.map((u) => (
                 <button
                     key={u._id}
                     onClick={() => handleUserClick(u._id)}
-                    className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all hover:bg-sidebar-accent active:scale-[0.98]"
+                    className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all duration-200 hover:bg-muted/50 active:scale-[0.98]"
                 >
                     {/* Avatar with online indicator */}
                     <div className="relative shrink-0">
@@ -86,18 +92,18 @@ export function UserList({ searchQuery, onConversationReady }: UserListProps) {
                             <img
                                 src={u.image}
                                 alt={u.name}
-                                className="h-10 w-10 rounded-full object-cover ring-2 ring-transparent group-hover:ring-primary/20 transition-all"
+                                className="h-10 w-10 rounded-full object-cover ring-1 ring-border/30 transition-all duration-200 group-hover:ring-primary/30"
                             />
                         ) : (
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5 text-sm font-semibold text-primary ring-1 ring-border/30 transition-all duration-200 group-hover:ring-primary/30">
                                 {u.name.charAt(0).toUpperCase()}
                             </div>
                         )}
                         {/* Online/offline dot */}
                         <span
-                            className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-sidebar transition-colors ${u.online
-                                ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.4)]"
-                                : "bg-zinc-500"
+                            className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-[2.5px] border-sidebar transition-colors ${u.online
+                                ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                                : "bg-zinc-600"
                                 }`}
                         />
                     </div>
@@ -107,7 +113,7 @@ export function UserList({ searchQuery, onConversationReady }: UserListProps) {
                         <p className="truncate text-sm font-medium text-sidebar-foreground">
                             {u.name}
                         </p>
-                        <p className={`text-xs transition-colors ${u.online ? "text-emerald-400" : "text-muted-foreground"
+                        <p className={`text-xs transition-colors ${u.online ? "text-emerald-400" : "text-muted-foreground/60"
                             }`}>
                             {u.online ? "Online" : "Offline"}
                         </p>
@@ -124,7 +130,7 @@ export function UserList({ searchQuery, onConversationReady }: UserListProps) {
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className="shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+                        className="shrink-0 text-muted-foreground/40 opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:text-primary"
                     >
                         <path d="m9 18 6-6-6-6" />
                     </svg>

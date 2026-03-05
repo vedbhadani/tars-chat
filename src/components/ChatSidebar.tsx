@@ -73,32 +73,35 @@ export function ChatSidebar() {
     };
 
     return (
-        <aside className="flex h-full w-full md:w-80 flex-col border-r border-border bg-sidebar">
-            {/* User profile header */}
-            <div className="flex items-center gap-3 border-b border-border px-4 py-4">
+        <aside className="flex h-full w-full md:w-80 flex-col border-r border-border/50 bg-sidebar">
+            {/* App brand + user header */}
+            <div className="flex items-center gap-3 border-b border-border/50 px-4 py-4">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/70 text-lg shadow-sm">
+                    💬
+                </div>
+                <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold tracking-tight text-sidebar-foreground">
+                        Realtime Chat
+                    </p>
+                    <p className="truncate text-[11px] text-muted-foreground">
+                        {user?.primaryEmailAddress?.emailAddress ?? (isLoaded ? user?.fullName || "User" : "Loading...")}
+                    </p>
+                </div>
                 <UserButton
                     appearance={{
                         elements: {
-                            avatarBox: "h-9 w-9",
+                            avatarBox: "h-8 w-8 ring-2 ring-border/50 hover:ring-primary/30 transition-all",
                         },
                     }}
                 />
-                <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-sidebar-foreground">
-                        {user?.fullName || user?.username || user?.firstName || (isLoaded ? "User" : "Loading...")}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                        {user?.primaryEmailAddress?.emailAddress ?? ""}
-                    </p>
-                </div>
                 {/* Sign out button */}
                 <button
                     onClick={() => signOut({ redirectUrl: "/" })}
-                    className="shrink-0 rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                    className="shrink-0 rounded-lg p-1.5 text-muted-foreground/60 transition-all duration-200 hover:bg-destructive/10 hover:text-destructive"
                     aria-label="Sign out"
                     title="Sign out"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                         <polyline points="16 17 21 12 16 7" />
                         <line x1="21" y1="12" x2="9" y2="12" />
@@ -107,10 +110,10 @@ export function ChatSidebar() {
             </div>
 
             {/* Tab switcher */}
-            <div className="flex border-b border-border">
+            <div className="flex border-b border-border/50">
                 <button
                     onClick={() => { setActiveTab("chats"); setSearchQuery(""); }}
-                    className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${activeTab === "chats"
+                    className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-all duration-200 ${activeTab === "chats"
                         ? "border-b-2 border-primary text-primary"
                         : "text-muted-foreground hover:text-foreground"
                         }`}
@@ -119,7 +122,7 @@ export function ChatSidebar() {
                 </button>
                 <button
                     onClick={() => { setActiveTab("people"); setSearchQuery(""); }}
-                    className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${activeTab === "people"
+                    className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-all duration-200 ${activeTab === "people"
                         ? "border-b-2 border-primary text-primary"
                         : "text-muted-foreground hover:text-foreground"
                         }`}
@@ -140,7 +143,7 @@ export function ChatSidebar() {
                 {activeTab === "chats" && (
                     <button
                         onClick={() => setIsGroupModalOpen(true)}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-all duration-200 hover:bg-primary hover:text-primary-foreground hover:shadow-md hover:shadow-primary/20 active:scale-95"
                         aria-label="New Group Chat"
                         title="New Group Chat"
                     >
