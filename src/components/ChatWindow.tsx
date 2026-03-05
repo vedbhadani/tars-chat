@@ -33,6 +33,7 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
 
     const markRead = useMutation(api.messages.markRead);
     const deleteMessage = useMutation(api.messages.remove);
+    const toggleReaction = useMutation(api.reactions.toggle);
 
     // Delete handler passed to MessageBubble
     const handleDeleteMessage = useCallback(
@@ -41,6 +42,15 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
             deleteMessage({ messageId, senderId: currentUser._id }).catch(console.error);
         },
         [deleteMessage, currentUser?._id]
+    );
+
+    // Reaction toggle handler
+    const handleToggleReaction = useCallback(
+        (messageId: Id<"messages">, emoji: string) => {
+            if (!currentUser?._id) return;
+            toggleReaction({ messageId, userId: currentUser._id, emoji }).catch(console.error);
+        },
+        [toggleReaction, currentUser?._id]
     );
 
     const conversation = useQuery(
@@ -73,6 +83,14 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
             ? { conversationId: conversationId as Id<"conversations"> }
             : "skip"
     ) ?? [];
+
+    // Real-time reactions subscription
+    const reactionsMap = useQuery(
+        api.reactions.getForConversation,
+        conversationId
+            ? { conversationId: conversationId as Id<"conversations"> }
+            : "skip"
+    ) ?? {};
 
     const othersTyping = typingUsers.filter(
         (t) => t && currentUser && t.userId !== currentUser._id
@@ -251,6 +269,9 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                                         timestamp={msg.createdAt}
                                         deleted={msg.deleted}
                                         onDelete={handleDeleteMessage}
+                                        reactions={reactionsMap[msg._id]}
+                                        currentUserId={currentUser?._id}
+                                        onToggleReaction={handleToggleReaction}
                                     />
                                 ))
                             )}

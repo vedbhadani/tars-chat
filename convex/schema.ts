@@ -65,4 +65,13 @@ export default defineSchema({
         conversationId: v.id("conversations"),
         lastReadTime: v.number(),
     }).index("by_conversation_user", ["conversationId", "userId"]),
+
+    // Reactions table tracks emoji reactions on individual messages.
+    reactions: defineTable({
+        messageId: v.id("messages"),
+        userId: v.id("users"),
+        emoji: v.string(),
+    })
+        .index("by_messageId", ["messageId"])
+        .index("by_message_user_emoji", ["messageId", "userId", "emoji"]),
 });
