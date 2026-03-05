@@ -18,6 +18,46 @@ export function formatTimestamp(timestamp: number): string {
 }
 
 /**
+ * Format timestamp according to Tars chat specifications:
+ * - Today: "2:34 PM"
+ * - This year: "Feb 15, 2:34 PM"
+ * - Different year: "Feb 15, 2023, 2:34 PM"
+ */
+export function formatMessageTimestamp(timestamp: number): string {
+  const date = new Date(timestamp);
+  const now = new Date();
+
+  const isToday =
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear();
+
+  const isThisYear = date.getFullYear() === now.getFullYear();
+
+  const timeString = date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  if (isToday) {
+    return timeString;
+  }
+
+  const monthDayString = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+
+  if (isThisYear) {
+    return `${monthDayString}, ${timeString}`;
+  }
+
+  const yearString = date.getFullYear();
+  return `${monthDayString}, ${yearString}, ${timeString}`;
+}
+
+/**
  * Truncate text to a given length, appending an ellipsis if needed.
  */
 export function truncateText(text: string, maxLength: number = 50): string {

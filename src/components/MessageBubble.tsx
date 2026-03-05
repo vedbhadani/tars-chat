@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, formatMessageTimestamp } from "@/lib/utils";
 import { useState } from "react";
 import { Id } from "../../convex/_generated/dataModel";
 
@@ -22,15 +22,6 @@ interface MessageBubbleProps {
     reactions?: ReactionData[];
     currentUserId?: string;
     onToggleReaction?: (messageId: Id<"messages">, emoji: string) => void;
-}
-
-function formatMessageTime(ts: number): string {
-    const date = new Date(ts);
-    return date.toLocaleTimeString(undefined, {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-    });
 }
 
 export function MessageBubble({
@@ -97,11 +88,11 @@ export function MessageBubble({
                     {timestamp && (
                         <span
                             className={cn(
-                                "mt-1 block text-right text-[10px]",
-                                isOwn ? "text-primary-foreground/50" : "text-muted-foreground"
+                                "block text-right text-xs text-muted-foreground mt-1",
+                                isOwn && "text-primary-foreground/70"
                             )}
                         >
-                            {formatMessageTime(timestamp)}
+                            {formatMessageTimestamp(timestamp)}
                         </span>
                     )}
                 </div>
