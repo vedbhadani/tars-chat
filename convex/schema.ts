@@ -17,6 +17,8 @@ export default defineSchema({
         image: v.string(),
         // Indicates if the user is currently online/active in the application.
         online: v.boolean(),
+        // Timestamp of when the user was last seen online.
+        lastSeen: v.optional(v.number()),
     }).index("by_clerkId", ["clerkId"]),
 
     // Conversations table tracks chat sessions between groups of users.

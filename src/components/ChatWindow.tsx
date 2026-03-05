@@ -2,6 +2,7 @@
 
 import { MessageBubble } from "@/components/MessageBubble";
 import { MessageInput } from "@/components/MessageInput";
+import { formatRelativeTime } from "@/lib/utils";
 import { useQuery } from "convex/react";
 import { useUser } from "@clerk/nextjs";
 import { api } from "../../convex/_generated/api";
@@ -102,7 +103,11 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                                     {otherUser.name}
                                 </h3>
                                 <p className={`text-xs ${otherUser.online ? "text-emerald-400" : "text-muted-foreground"}`}>
-                                    {otherUser.online ? "Online" : "Offline"}
+                                    {otherUser.online
+                                        ? "Online"
+                                        : otherUser.lastSeen
+                                            ? `Active ${formatRelativeTime(otherUser.lastSeen)}`
+                                            : "Offline"}
                                 </p>
                             </div>
                         </>

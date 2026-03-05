@@ -62,6 +62,7 @@ export const createUserIfNotExists = mutation({
             name: args.name,
             image: args.image ?? "",
             online: true,
+            lastSeen: Date.now(),
         });
     },
 });
@@ -78,7 +79,11 @@ export const updateOnlineStatus = mutation({
             .unique();
 
         if (user && user.online !== args.online) {
-            await ctx.db.patch(user._id, { online: args.online });
+            await ctx.db.patch(user._id, {
+                online: args.online,
+                // If they are going offline, record the exact timestamp
+                ...(args.online === false ? { lastSeen: Date.now() } : {})
+            });
         }
     },
 });

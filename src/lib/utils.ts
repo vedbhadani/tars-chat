@@ -24,3 +24,22 @@ export function truncateText(text: string, maxLength: number = 50): string {
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength).trimEnd() + "…";
 }
+
+/**
+ * Format timestamp into a human readable "relative" time (e.g. "5m ago", "2h ago")
+ */
+export function formatRelativeTime(timestamp: number): string {
+  const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+  const daysDifference = Math.round((timestamp - Date.now()) / (1000 * 60 * 60 * 24));
+  const hoursDifference = Math.round((timestamp - Date.now()) / (1000 * 60 * 60));
+  const minutesDifference = Math.round((timestamp - Date.now()) / (1000 * 60));
+
+  if (Math.abs(minutesDifference) < 1) return "just now";
+  if (Math.abs(minutesDifference) < 60) return rtf.format(minutesDifference, 'minute');
+  if (Math.abs(hoursDifference) < 24) return rtf.format(hoursDifference, 'hour');
+
+  if (Math.abs(daysDifference) === 1) return "yesterday";
+  if (Math.abs(daysDifference) < 7) return rtf.format(daysDifference, 'day');
+
+  return new Date(timestamp).toLocaleDateString([], { month: "short", day: "numeric" });
+}
