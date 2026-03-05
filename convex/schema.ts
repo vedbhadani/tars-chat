@@ -26,6 +26,10 @@ export default defineSchema({
         // Array of user IDs participating in this conversation.
         // Storing it as an array allows for 1-on-1 and group chats natively.
         members: v.array(v.id("users")),
+        // Flag to distinguish between direct messages and group chats.
+        isGroup: v.optional(v.boolean()),
+        // Optional name for group chats.
+        groupName: v.optional(v.string()),
     }),
 
     // Messages table stores the actual chat messages sent within conversations.

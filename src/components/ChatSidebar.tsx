@@ -3,6 +3,7 @@
 import { SearchBar } from "@/components/SearchBar";
 import { UserList } from "@/components/UserList";
 import { ConversationList } from "@/components/ConversationList";
+import { NewGroupModal } from "@/components/NewGroupModal";
 import { UserButton, useUser, useClerk } from "@clerk/nextjs";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -18,6 +19,7 @@ export function ChatSidebar() {
     const createUserIfNotExists = useMutation(api.users.createUserIfNotExists);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeTab, setActiveTab] = useState<SidebarTab>("chats");
+    const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
     const router = useRouter();
     const params = useParams();
     const activeConversationId = params?.id as string | undefined;
@@ -126,13 +128,32 @@ export function ChatSidebar() {
                 </button>
             </div>
 
-            {/* Search */}
-            <div className="px-3 py-3">
-                <SearchBar
-                    placeholder={activeTab === "chats" ? "Search conversations…" : "Search users…"}
-                    value={searchQuery}
-                    onChange={setSearchQuery}
-                />
+            {/* Search and Actions */}
+            <div className="flex items-center gap-2 px-3 py-3">
+                <div className="flex-1">
+                    <SearchBar
+                        placeholder={activeTab === "chats" ? "Search conversations…" : "Search users…"}
+                        value={searchQuery}
+                        onChange={setSearchQuery}
+                    />
+                </div>
+                {activeTab === "chats" && (
+                    <button
+                        onClick={() => setIsGroupModalOpen(true)}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                        aria-label="New Group Chat"
+                        title="New Group Chat"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            <line x1="19" y1="8" x2="19" y2="14" />
+                            <line x1="22" y1="11" x2="16" y2="11" />
+                        </svg>
+                    </button>
+                )}
             </div>
 
             {/* Content based on active tab */}
@@ -150,6 +171,12 @@ export function ChatSidebar() {
                     />
                 )}
             </nav>
+
+            <NewGroupModal
+                isOpen={isGroupModalOpen}
+                onClose={() => setIsGroupModalOpen(false)}
+                onGroupCreated={handleConversationReady}
+            />
         </aside>
     );
 }

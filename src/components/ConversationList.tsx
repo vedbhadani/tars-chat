@@ -43,10 +43,11 @@ export function ConversationList({
         currentUser?._id ? { userId: currentUser._id } : "skip"
     );
 
-    // Filter by search query (match other user's name)
+    // Filter by search query (match group name or other user's name)
     const filtered = (conversations ?? []).filter((c) => {
         if (!searchQuery) return true;
-        return c.otherUser?.name
+        const targetName = c.isGroup ? c.groupName : c.otherUser?.name;
+        return targetName
             ?.toLowerCase()
             .includes(searchQuery.toLowerCase());
     });
@@ -99,7 +100,16 @@ export function ConversationList({
                     >
                         {/* Avatar with online indicator */}
                         <div className="relative shrink-0">
-                            {conv.otherUser?.image ? (
+                            {conv.isGroup ? (
+                                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/20 text-sm font-semibold text-primary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                        <circle cx="9" cy="7" r="4" />
+                                        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                    </svg>
+                                </div>
+                            ) : conv.otherUser?.image ? (
                                 <img
                                     src={conv.otherUser.image}
                                     alt={conv.otherUser.name}
@@ -110,7 +120,7 @@ export function ConversationList({
                                     {conv.otherUser?.name?.charAt(0).toUpperCase() ?? "?"}
                                 </div>
                             )}
-                            {conv.otherUser?.online && (
+                            {!conv.isGroup && conv.otherUser?.online && (
                                 <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-sidebar bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.4)]" />
                             )}
                         </div>
@@ -119,7 +129,7 @@ export function ConversationList({
                         <div className="min-w-0 flex-1">
                             <div className="flex items-center justify-between gap-2">
                                 <p className={`truncate text-sm font-medium ${conv.unreadCount > 0 ? "text-foreground font-bold" : "text-sidebar-foreground"}`}>
-                                    {conv.otherUser?.name ?? "Unknown User"}
+                                    {conv.isGroup ? `${conv.groupName} (${conv.memberCount})` : (conv.otherUser?.name ?? "Unknown User")}
                                 </p>
                                 {conv.lastMessage && (
                                     <span className={`shrink-0 text-[10px] ${conv.unreadCount > 0 ? "text-primary font-semibold" : "text-muted-foreground"}`}>

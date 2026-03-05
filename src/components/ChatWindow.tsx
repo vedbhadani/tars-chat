@@ -188,11 +188,20 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                             </svg>
                         </button>
                     )}
-                    {conversationId && otherUser ? (
+                    {conversationId && (conversation?.isGroup ? true : otherUser) ? (
                         <>
-                            {/* Other user's avatar */}
-                            <div className="relative">
-                                {otherUser.image ? (
+                            {/* Avatar */}
+                            <div className="relative shrink-0">
+                                {conversation?.isGroup ? (
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-sm font-semibold text-primary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                            <circle cx="9" cy="7" r="4" />
+                                            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                        </svg>
+                                    </div>
+                                ) : otherUser?.image ? (
                                     <img
                                         src={otherUser.image}
                                         alt={otherUser.name}
@@ -200,23 +209,25 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                                     />
                                 ) : (
                                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary">
-                                        {otherUser.name.charAt(0).toUpperCase()}
+                                        {otherUser?.name.charAt(0).toUpperCase()}
                                     </div>
                                 )}
-                                {otherUser.online && (
+                                {!conversation?.isGroup && otherUser?.online && (
                                     <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-background bg-emerald-500" />
                                 )}
                             </div>
                             <div>
                                 <h3 className="text-sm font-semibold text-foreground">
-                                    {otherUser.name}
+                                    {conversation?.isGroup ? conversation.groupName : otherUser?.name}
                                 </h3>
-                                <p className={`text-xs ${otherUser.online ? "text-emerald-400" : "text-muted-foreground"}`}>
-                                    {otherUser.online
-                                        ? "Online"
-                                        : otherUser.lastSeen
-                                            ? `Active ${formatRelativeTime(otherUser.lastSeen)}`
-                                            : "Offline"}
+                                <p className={`text-xs ${conversation?.isGroup ? "text-muted-foreground" : otherUser?.online ? "text-emerald-400" : "text-muted-foreground"}`}>
+                                    {conversation?.isGroup
+                                        ? `${conversation.members.length} members`
+                                        : otherUser?.online
+                                            ? "Online"
+                                            : otherUser?.lastSeen
+                                                ? `Active ${formatRelativeTime(otherUser.lastSeen)}`
+                                                : "Offline"}
                                 </p>
                             </div>
                         </>

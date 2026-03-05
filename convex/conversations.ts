@@ -78,7 +78,10 @@ export const getMyConversations = query({
 
                 return {
                     _id: conv._id,
-                    otherUser: otherMember
+                    isGroup: conv.isGroup,
+                    groupName: conv.groupName,
+                    memberCount: conv.members.length,
+                    otherUser: !conv.isGroup && otherMember
                         ? {
                             _id: otherMember._id,
                             name: otherMember.name,
@@ -137,6 +140,22 @@ export const create = mutation({
     handler: async (ctx, args) => {
         return await ctx.db.insert("conversations", {
             members: args.members,
+        });
+    },
+});
+
+export const createGroup = mutation({
+    args: {
+        members: v.array(v.id("users")),
+        groupName: v.string(),
+    },
+    handler: async (ctx, args) => {
+        // Enforce at least 3 members for a group (creator + 2 others)
+        // or just accept however many the UI sends, but typically > 2.
+        return await ctx.db.insert("conversations", {
+            members: args.members,
+            isGroup: true,
+            groupName: args.groupName,
         });
     },
 });
