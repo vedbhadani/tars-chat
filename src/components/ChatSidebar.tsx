@@ -33,6 +33,37 @@ export function ChatSidebar() {
         }
     }, [isLoaded, user, createUserIfNotExists]);
 
+    // Presence Management (Online/Offline Status)
+    const updateOnlineStatus = useMutation(api.users.updateOnlineStatus);
+    useEffect(() => {
+        if (!isLoaded || !user) return;
+
+        // Set online when initially mounted or focused
+        updateOnlineStatus({ clerkId: user.id, online: true }).catch(console.error);
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === "hidden") {
+                updateOnlineStatus({ clerkId: user.id, online: false }).catch(console.error);
+            } else {
+                updateOnlineStatus({ clerkId: user.id, online: true }).catch(console.error);
+            }
+        };
+
+        const handleBeforeUnload = () => {
+            updateOnlineStatus({ clerkId: user.id, online: false }).catch(console.error);
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+            // Also set offline when component unmounts
+            updateOnlineStatus({ clerkId: user.id, online: false }).catch(console.error);
+        };
+    }, [isLoaded, user, updateOnlineStatus]);
+
     const handleConversationReady = (conversationId: Id<"conversations">) => {
         setActiveTab("chats");
         setSearchQuery("");

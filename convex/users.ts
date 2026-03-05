@@ -66,16 +66,19 @@ export const createUserIfNotExists = mutation({
     },
 });
 
-export const setUserOffline = mutation({
-    args: { clerkId: v.string() },
+export const updateOnlineStatus = mutation({
+    args: {
+        clerkId: v.string(),
+        online: v.boolean()
+    },
     handler: async (ctx, args) => {
         const user = await ctx.db
             .query("users")
             .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
             .unique();
 
-        if (user) {
-            await ctx.db.patch(user._id, { online: false });
+        if (user && user.online !== args.online) {
+            await ctx.db.patch(user._id, { online: args.online });
         }
     },
 });
