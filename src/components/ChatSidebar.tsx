@@ -81,10 +81,10 @@ export function ChatSidebar() {
                 </div>
                 <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-bold tracking-tight text-sidebar-foreground">
-                        Realtime Chat
+                        {isLoaded && user ? (user.fullName || user.username || "User") : "Realtime Chat"}
                     </p>
                     <p className="truncate text-[11px] text-muted-foreground">
-                        {user?.primaryEmailAddress?.emailAddress ?? (isLoaded ? user?.fullName || "User" : "Loading...")}
+                        {user?.primaryEmailAddress?.emailAddress ?? (isLoaded ? "Personal Account" : "Loading...")}
                     </p>
                 </div>
                 <UserButton

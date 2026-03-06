@@ -14,46 +14,53 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-background px-4 overflow-hidden">
-      {/* Decorative blurred orbs */}
-      <div className="pointer-events-none absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-primary/20 blur-[120px]" />
-      <div className="pointer-events-none absolute -bottom-40 -right-40 h-[500px] w-[500px] rounded-full bg-primary/10 blur-[120px]" />
+    <div className="relative flex min-h-screen items-center justify-center bg-[#07070a] px-4 overflow-hidden">
+      {/* ── Premium Mesh Background ── */}
+      <div className="mesh-bg opacity-30" />
+      <div className="mesh-overlay" />
 
-      <div className="relative w-full max-w-sm rounded-2xl border border-border/60 bg-card/80 backdrop-blur-xl p-8 shadow-2xl shadow-primary/5">
-        {/* Brand */}
-        <div className="mb-8 flex flex-col items-center gap-4 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/70 text-3xl shadow-lg glow-primary">
-            💬
+      {/* ── Subtle Vignette ── */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)]" />
+
+      <div className="animate-fade-in-up relative w-full max-w-[380px] rounded-2xl border border-white/10 bg-[#0a0a0c]/80 backdrop-blur-xl p-8 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.6)] group">
+        <div className="relative">
+          {/* Brand */}
+          <div className="mb-10 flex flex-col items-center gap-5 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 text-3xl shadow-lg ring-1 ring-white/10">
+              💬
+            </div>
+            <div className="space-y-1.5">
+              <h1 className="text-3xl font-bold tracking-tight text-white line-height-none">
+                TarsChat
+              </h1>
+              <p className="text-sm font-medium text-zinc-400">
+                Connect and collaborate <span className="text-violet-400">seamlessly</span>
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Realtime Chat
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Connect and message people instantly
-            </p>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col gap-3">
+            <SignInButton mode="modal" forceRedirectUrl="/chat" fallbackRedirectUrl="/chat">
+              <button className="w-full rounded-xl bg-violet-600 py-3.5 text-sm font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] shadow-md shadow-violet-600/10">
+                Sign In
+              </button>
+            </SignInButton>
+
+            <SignUpButton mode="modal" forceRedirectUrl="/chat" fallbackRedirectUrl="/chat">
+              <button className="w-full rounded-xl border border-white/10 bg-white/5 py-3.5 text-sm font-semibold text-white transition-all hover:bg-white/10 active:scale-[0.98]">
+                Create Account
+              </button>
+            </SignUpButton>
+          </div>
+
+          {/* Footer Branding */}
+          <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-center">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+              Powered by TarsChat Systems
+            </span>
           </div>
         </div>
-
-        {/* Auth buttons */}
-        <div className="flex flex-col gap-3">
-          <SignInButton mode="modal" forceRedirectUrl="/chat" fallbackRedirectUrl="/chat">
-            <button className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25 transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]">
-              Sign In
-            </button>
-          </SignInButton>
-
-          <SignUpButton mode="modal" forceRedirectUrl="/chat" fallbackRedirectUrl="/chat">
-            <button className="w-full rounded-xl border border-border bg-secondary/60 py-3 text-sm font-semibold text-secondary-foreground transition-all duration-200 hover:bg-secondary/80 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]">
-              Create Account
-            </button>
-          </SignUpButton>
-        </div>
-
-        {/* Footer */}
-        <p className="mt-6 text-center text-xs text-muted-foreground/50">
-          By continuing you agree to our Terms of Service
-        </p>
       </div>
     </div>
   );

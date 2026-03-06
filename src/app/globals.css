@@ -187,11 +187,181 @@
 }
 
 /* ── Focus visible ring for accessibility ── */
+
+
+/* ── Clerk UI Visibility Fixes ── */
+::placeholder,
+input::placeholder,
+textarea::placeholder,
+.cl-formFieldInput::placeholder {
+  color: rgba(255, 255, 255, 0.8) !important;
+  opacity: 1 !important;
+}
+
+/* Fix dark social logos (Apple, GitHub) */
+.cl-socialButtonsIconButton__apple,
+.cl-socialButtonsIconButton__github {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.cl-socialButtonsIconButton__apple img,
+.cl-socialButtonsIconButton__github img {
+  filter: brightness(0) invert(1) !important;
+}
+
+/* Footer text & links */
+.cl-footerActionText {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.cl-footerActionLink {
+  color: #a78bfa !important;
+  /* Lighter violet */
+}
+
+/* Close button (top cross) */
+.cl-modalCloseButton {
+  color: #ffffff !important;
+}
+
+.cl-modalCloseButton:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
 .focus-ring {
   outline: none;
 }
 
-.focus-ring:focus-visible {
-  box-shadow: 0 0 0 2px oklch(0.63 0.26 265 / 50%);
-  border-radius: 0.5rem;
+/* ── Premium Mesh Gradient Background ── */
+
+@keyframes mesh-rotate {
+  0% {
+    transform: rotate(0deg) scale(1.2);
+  }
+
+  50% {
+    transform: rotate(180deg) scale(1.5);
+  }
+
+  100% {
+    transform: rotate(360deg) scale(1.2);
+  }
+}
+
+@keyframes mesh-pulse {
+
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.mesh-bg {
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background-image:
+    radial-gradient(circle at 0% 0%, rgba(124, 58, 237, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 100% 0%, rgba(79, 70, 229, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 0% 100%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.05) 0%, transparent 50%);
+  filter: blur(80px);
+  animation: mesh-rotate 25s linear infinite;
+}
+
+.mesh-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* ── Premium Landing Page Animations ── */
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-20px) scale(1.05);
+  }
+}
+
+@keyframes float-reverse {
+
+  0%,
+  100% {
+    transform: translateY(0) scale(1.05);
+  }
+
+  50% {
+    transform: translateY(20px) scale(1);
+  }
+}
+
+@keyframes pulse-subtle {
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-float {
+  animation: float 8s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: float-reverse 10s ease-in-out infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 4s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+}
+
+.delay-100 {
+  animation-delay: 0.1s;
+}
+
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
+
+.shadow-glow-primary {
+  box-shadow: 0 0 20px -5px var(--primary);
 }
