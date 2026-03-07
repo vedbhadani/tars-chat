@@ -172,15 +172,15 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
 
     // ── Render ───────────────────────────────────────────
     return (
-        <div className="flex flex-1 flex-col bg-background">
+        <div className="flex flex-1 flex-col bg-[#f5ebe0]">
             {/* Header */}
-            <header className="flex items-center justify-between border-b border-border/40 bg-card/50 backdrop-blur-sm px-4 md:px-6 py-3.5">
+            <header className="flex items-center justify-between border-b border-[#e3d5ca] bg-[#edede9]/80 backdrop-blur-sm px-4 md:px-6 py-3.5">
                 <div className="flex items-center gap-2 md:gap-3">
                     {/* Mobile back button */}
                     {conversationId && (
                         <button
                             onClick={() => router.push("/chat")}
-                            className="md:hidden shrink-0 rounded-lg p-1.5 text-muted-foreground/60 transition-all duration-200 hover:bg-muted/50 hover:text-foreground"
+                            className="md:hidden shrink-0 rounded-lg p-1.5 text-[#7a6a5e] transition-all duration-200 hover:bg-[#e3d5ca]/50 hover:text-[#3d2c2c]"
                             aria-label="Back to conversations"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -193,7 +193,7 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                             {/* Avatar */}
                             <div className="relative shrink-0">
                                 {conversation?.isGroup ? (
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5 text-sm font-semibold text-primary">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d5bdaf]/20 text-sm font-semibold text-[#8b6f5e]">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                                             <circle cx="9" cy="7" r="4" />
@@ -205,22 +205,22 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                                     <img
                                         src={otherUser.image}
                                         alt={otherUser.name}
-                                        className="h-10 w-10 rounded-full object-cover ring-1 ring-border/30"
+                                        className="h-10 w-10 rounded-full object-cover ring-1 ring-[#e3d5ca]"
                                     />
                                 ) : (
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5 text-sm font-semibold text-primary">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d5bdaf]/20 text-sm font-semibold text-[#8b6f5e]">
                                         {otherUser?.name.charAt(0).toUpperCase()}
                                     </div>
                                 )}
                                 {!conversation?.isGroup && otherUser?.online && (
-                                    <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-card bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                                    <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#edede9] bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
                                 )}
                             </div>
                             <div>
-                                <h3 className="text-sm font-semibold text-foreground">
+                                <h3 className="text-sm font-semibold text-[#3d2c2c]">
                                     {conversation?.isGroup ? conversation.groupName : otherUser?.name}
                                 </h3>
-                                <p className={`text-xs ${conversation?.isGroup ? "text-muted-foreground" : otherUser?.online ? "text-emerald-400" : "text-muted-foreground"}`}>
+                                <p className={`text-xs ${conversation?.isGroup ? "text-[#7a6a5e]" : otherUser?.online ? "text-emerald-600" : "text-[#7a6a5e]"}`}>
                                     {conversation?.isGroup
                                         ? `${conversation.members.length} members`
                                         : otherUser?.online
@@ -234,22 +234,22 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                     ) : conversationId ? (
                         <>
                             {/* Header Skeleton */}
-                            <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-muted/50" />
+                            <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-[#e3d5ca]/50" />
                             <div className="space-y-2 py-1">
-                                <div className="h-3.5 w-24 animate-pulse rounded-md bg-muted/50" />
-                                <div className="h-3 w-16 animate-pulse rounded-md bg-muted/40" />
+                                <div className="h-3.5 w-24 animate-pulse rounded-md bg-[#e3d5ca]/50" />
+                                <div className="h-3 w-16 animate-pulse rounded-md bg-[#e3d5ca]/40" />
                             </div>
                         </>
                     ) : (
                         <>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted/40 text-sm font-medium text-muted-foreground">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e3d5ca]/40 text-sm font-medium text-[#7a6a5e]">
                                 💬
                             </div>
                             <div>
-                                <h3 className="text-sm font-semibold text-foreground">
+                                <h3 className="text-sm font-semibold text-[#3d2c2c]">
                                     Select a conversation
                                 </h3>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-xs text-[#7a6a5e]">
                                     Choose someone to chat with
                                 </p>
                             </div>
@@ -273,15 +273,15 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                                         {[1, 2, 3, 4, 5].map((i) => (
                                             <div key={i} className={`flex w-full items-end gap-2 ${i % 2 === 0 ? "flex-row-reverse" : "flex-row"}`}>
                                                 {i % 2 !== 0 && (
-                                                    <div className="h-8 w-8 shrink-0 animate-pulse rounded-full bg-muted/40" />
+                                                    <div className="h-8 w-8 shrink-0 animate-pulse rounded-full bg-[#e3d5ca]/40" />
                                                 )}
                                                 <div className={`flex flex-col gap-1.5 ${i % 2 === 0 ? "items-end" : "items-start"}`}>
                                                     {i % 2 !== 0 && (
-                                                        <div className="h-2.5 w-16 animate-pulse rounded bg-muted/30 ml-1" />
+                                                        <div className="h-2.5 w-16 animate-pulse rounded bg-[#e3d5ca]/30 ml-1" />
                                                     )}
-                                                    <div className={`h-10 animate-pulse rounded-2xl bg-muted/30 ${i % 2 === 0 ? "w-48 rounded-br-md" : "w-56 rounded-bl-md"}`} />
+                                                    <div className={`h-10 animate-pulse rounded-2xl bg-[#e3d5ca]/30 ${i % 2 === 0 ? "w-48 rounded-br-md" : "w-56 rounded-bl-md"}`} />
                                                     {i % 3 === 0 && (
-                                                        <div className={`h-8 animate-pulse rounded-2xl bg-muted/20 ${i % 2 === 0 ? "w-32 rounded-br-md" : "w-40 rounded-bl-md"}`} />
+                                                        <div className={`h-8 animate-pulse rounded-2xl bg-[#e3d5ca]/20 ${i % 2 === 0 ? "w-32 rounded-br-md" : "w-40 rounded-bl-md"}`} />
                                                     )}
                                                 </div>
                                             </div>
@@ -289,15 +289,15 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                                     </div>
                                 ) : sortedMessages.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-20 text-center">
-                                        <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                                        <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[#d5bdaf]/15">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#d5bdaf]">
                                                 <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
                                             </svg>
                                         </div>
-                                        <p className="text-base font-medium text-foreground">
+                                        <p className="text-base font-medium text-[#3d2c2c]">
                                             No messages yet
                                         </p>
-                                        <p className="mt-1.5 text-sm text-muted-foreground">
+                                        <p className="mt-1.5 text-sm text-[#7a6a5e]">
                                             Send the first message! 👋
                                         </p>
                                     </div>
@@ -345,16 +345,16 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                                 {/* Typing indicator */}
                                 {othersTyping.length > 0 && (
                                     <div className="flex w-full justify-start">
-                                        <div className="flex items-center gap-2 rounded-2xl rounded-bl-md bg-muted/30 backdrop-blur-sm px-4 py-3 shadow-sm shadow-black/5">
-                                            <span className="text-xs text-muted-foreground">
+                                        <div className="flex items-center gap-2 rounded-2xl rounded-bl-md bg-[#edede9] backdrop-blur-sm px-4 py-3 shadow-sm ring-1 ring-[#e3d5ca]">
+                                            <span className="text-xs font-medium text-[#7a6a5e]">
                                                 {othersTyping.map((t) => t?.name).join(", ")}
                                                 {othersTyping.length === 1 ? " is" : " are"} typing
                                             </span>
                                             {/* Animated dots */}
                                             <span className="flex items-center gap-0.5">
-                                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "0ms" }} />
-                                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "150ms" }} />
-                                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "300ms" }} />
+                                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#d5bdaf]" style={{ animationDelay: "0ms" }} />
+                                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#d5bdaf]" style={{ animationDelay: "150ms" }} />
+                                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#d5bdaf]" style={{ animationDelay: "300ms" }} />
                                             </span>
                                         </div>
                                     </div>
@@ -365,12 +365,12 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                             </div>
                         ) : (
                             <div className="flex h-full flex-col items-center justify-center gap-3">
-                                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted/30">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
+                                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#e3d5ca]/40 border border-[#e3d5ca]">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#7a6a5e]">
                                         <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
                                     </svg>
                                 </div>
-                                <p className="text-muted-foreground">
+                                <p className="text-[#7a6a5e] font-medium">
                                     Select a conversation to start messaging
                                 </p>
                             </div>
@@ -382,7 +382,7 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                 {showNewMessagesButton && (
                     <button
                         onClick={scrollToBottom}
-                        className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 animate-in fade-in slide-in-from-bottom-2 rounded-full bg-gradient-to-r from-primary to-primary/85 px-4 py-2 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all duration-200 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-95"
+                        className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 animate-in fade-in slide-in-from-bottom-2 rounded-full bg-gradient-to-r from-[#d5bdaf] to-[#c4a898] px-4 py-2 text-xs font-semibold text-[#3d2c2c] shadow-lg shadow-[#d5bdaf]/25 transition-all duration-200 hover:shadow-xl hover:shadow-[#d5bdaf]/30 hover:-translate-y-0.5 active:scale-95"
                     >
                         ↓ New messages
                     </button>

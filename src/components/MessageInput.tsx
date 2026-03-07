@@ -82,7 +82,7 @@ export function MessageInput({ conversationId, senderId }: MessageInputProps) {
     };
 
     return (
-        <div className="border-t border-border/40 bg-background/80 backdrop-blur-sm px-4 py-3">
+        <div className="border-t border-[#e3d5ca] bg-[#edede9]/80 backdrop-blur-sm px-4 py-3">
             <div className="mx-auto flex max-w-2xl items-center gap-3">
                 {/* Text input */}
                 <input
@@ -92,18 +92,18 @@ export function MessageInput({ conversationId, senderId }: MessageInputProps) {
                     onKeyDown={handleKeyDown}
                     placeholder="Type a message…"
                     disabled={isSending}
-                    className="flex-1 rounded-xl border border-border/40 bg-muted/30 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 disabled:opacity-50 transition-all duration-200"
+                    className="flex-1 rounded-xl border border-[#e3d5ca] bg-[#f5ebe0] px-4 py-2.5 text-sm text-[#3d2c2c] placeholder:text-[#7a6a5e]/50 focus:outline-none focus:ring-2 focus:ring-[#d5bdaf]/40 focus:border-[#d5bdaf]/40 disabled:opacity-50 transition-all duration-200"
                 />
 
                 {/* Send button */}
                 <button
                     onClick={handleSend}
                     disabled={!message.trim() || isSending}
-                    className="flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/85 h-10 w-10 text-primary-foreground shadow-md shadow-primary/20 transition-all duration-200 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0 active:scale-95"
+                    className="flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#d5bdaf] to-[#c4a898] h-10 w-10 text-[#3d2c2c] shadow-md shadow-[#d5bdaf]/20 transition-all duration-200 hover:shadow-lg hover:shadow-[#d5bdaf]/30 hover:-translate-y-0.5 disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0 active:scale-95"
                     aria-label="Send message"
                 >
                     {isSending ? (
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#3d2c2c] border-t-transparent" />
                     ) : (
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -126,7 +126,7 @@ export function MessageInput({ conversationId, senderId }: MessageInputProps) {
 
             {/* Error Message */}
             {error && (
-                <div className="mx-auto mt-2 flex max-w-2xl items-center gap-2 px-1 text-xs text-destructive">
+                <div className="mx-auto mt-2 flex max-w-2xl items-center gap-2 px-1 text-xs text-[#c4746e]">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="12" cy="12" r="10" />
                         <line x1="12" x2="12" y1="8" y2="12" />
@@ -135,7 +135,7 @@ export function MessageInput({ conversationId, senderId }: MessageInputProps) {
                     <span>{error}</span>
                     <button
                         onClick={handleRetry}
-                        className="ml-1 font-semibold underline underline-offset-2 transition-colors hover:text-destructive/80"
+                        className="ml-1 font-semibold underline underline-offset-2 transition-colors hover:text-[#c4746e]/80"
                     >
                         Retry
                     </button>

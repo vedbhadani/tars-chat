@@ -73,31 +73,31 @@ export function ChatSidebar() {
     };
 
     return (
-        <aside className="flex h-full w-full md:w-80 flex-col border-r border-border/50 bg-sidebar">
+        <aside className="flex h-full w-full md:w-80 flex-col border-r border-[#c4b5a8] bg-[#d6ccc2]">
             {/* App brand + user header */}
-            <div className="flex items-center gap-3 border-b border-border/50 px-4 py-4">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/70 text-lg shadow-sm">
+            <div className="flex items-center gap-3 border-b border-[#c4b5a8] px-4 py-4">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#d5bdaf] to-[#c4a898] text-lg shadow-sm shadow-[#d5bdaf]/20">
                     💬
                 </div>
                 <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold tracking-tight text-sidebar-foreground">
-                        {isLoaded && user ? (user.fullName || user.username || "User") : "Realtime Chat"}
+                    <p className="truncate text-sm font-bold tracking-tight text-[#3d2c2c]">
+                        {isLoaded && user ? (user.fullName || user.username || "User") : "TarsChat"}
                     </p>
-                    <p className="truncate text-[11px] text-muted-foreground">
+                    <p className="truncate text-[11px] text-[#7a6a5e]">
                         {user?.primaryEmailAddress?.emailAddress ?? (isLoaded ? "Personal Account" : "Loading...")}
                     </p>
                 </div>
                 <UserButton
                     appearance={{
                         elements: {
-                            avatarBox: "h-8 w-8 ring-2 ring-border/50 hover:ring-primary/30 transition-all",
+                            avatarBox: "h-8 w-8 ring-2 ring-[#c4b5a8] hover:ring-[#d5bdaf] transition-all shadow-sm",
                         },
                     }}
                 />
                 {/* Sign out button */}
                 <button
                     onClick={() => signOut({ redirectUrl: "/" })}
-                    className="shrink-0 rounded-lg p-1.5 text-muted-foreground/60 transition-all duration-200 hover:bg-destructive/10 hover:text-destructive"
+                    className="shrink-0 rounded-lg p-1.5 text-[#7a6a5e] transition-all duration-200 hover:bg-[#c4746e]/10 hover:text-[#c4746e]"
                     aria-label="Sign out"
                     title="Sign out"
                 >
@@ -110,12 +110,12 @@ export function ChatSidebar() {
             </div>
 
             {/* Tab switcher */}
-            <div className="flex border-b border-border/50">
+            <div className="flex border-b border-[#c4b5a8]">
                 <button
                     onClick={() => { setActiveTab("chats"); setSearchQuery(""); }}
                     className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-all duration-200 ${activeTab === "chats"
-                        ? "border-b-2 border-primary text-primary"
-                        : "text-muted-foreground hover:text-foreground"
+                        ? "border-b-2 border-[#d5bdaf] text-[#3d2c2c]"
+                        : "text-[#7a6a5e] hover:text-[#3d2c2c]"
                         }`}
                 >
                     Chats
@@ -123,8 +123,8 @@ export function ChatSidebar() {
                 <button
                     onClick={() => { setActiveTab("people"); setSearchQuery(""); }}
                     className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-all duration-200 ${activeTab === "people"
-                        ? "border-b-2 border-primary text-primary"
-                        : "text-muted-foreground hover:text-foreground"
+                        ? "border-b-2 border-[#d5bdaf] text-[#3d2c2c]"
+                        : "text-[#7a6a5e] hover:text-[#3d2c2c]"
                         }`}
                 >
                     People
@@ -143,7 +143,7 @@ export function ChatSidebar() {
                 {activeTab === "chats" && (
                     <button
                         onClick={() => setIsGroupModalOpen(true)}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-all duration-200 hover:bg-primary hover:text-primary-foreground hover:shadow-md hover:shadow-primary/20 active:scale-95"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#d5bdaf]/20 text-[#8b6f5e] transition-all duration-200 hover:bg-[#d5bdaf] hover:text-[#3d2c2c] hover:shadow-md hover:shadow-[#d5bdaf]/20 active:scale-95"
                         aria-label="New Group Chat"
                         title="New Group Chat"
                     >
