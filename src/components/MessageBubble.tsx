@@ -1,7 +1,7 @@
 "use client";
 
 import { cn, formatMessageTimestamp } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Id } from "../../convex/_generated/dataModel";
 
 const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢"];
@@ -48,6 +48,22 @@ export function MessageBubble({
 }: MessageBubbleProps) {
     const [showConfirm, setShowConfirm] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [isLongPressed, setIsLongPressed] = useState(false);
+    const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
+
+    const handleTouchStart = () => {
+        // Only trigger for mobile/touch
+        longPressTimeout.current = setTimeout(() => {
+            setIsLongPressed(true);
+        }, 500);
+    };
+
+    const handleTouchEnd = () => {
+        if (longPressTimeout.current) {
+            clearTimeout(longPressTimeout.current);
+            longPressTimeout.current = null;
+        }
+    };
 
     const hasReactions = reactions && reactions.length > 0;
 
@@ -89,12 +105,24 @@ export function MessageBubble({
     return (
         <div
             className={cn(
-                "group flex w-full items-end gap-2 animate-message-enter",
+                "group flex w-full items-end gap-2 animate-message-enter relative",
                 isOwn ? "flex-row-reverse" : "flex-row",
                 !isFirstInGroup && !isOwn && "pl-10",
                 isFirstInGroup ? "mt-3" : "mt-0.5"
             )}
         >
+            {/* Context menu backdrop for mobile */}
+            {isLongPressed && (
+                <div
+                    className="fixed inset-0 z-40 bg-black/5 md:hidden"
+                    onClick={() => {
+                        setIsLongPressed(false);
+                        setShowEmojiPicker(false);
+                        setShowConfirm(false);
+                    }}
+                />
+            )}
+
             {/* Sender avatar — only for received, first in group */}
             {!isOwn && isFirstInGroup && (
                 <div className="shrink-0 mb-0.5">
@@ -125,12 +153,16 @@ export function MessageBubble({
                 <div className={cn("flex items-center gap-1", isOwn ? "flex-row-reverse" : "flex-row")}>
                     {/* The bubble */}
                     <div
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
+                        onTouchMove={handleTouchEnd}
                         className={cn(
-                            "max-w-xs md:max-w-md px-4 py-2 text-sm leading-relaxed",
+                            "max-w-xs md:max-w-md px-4 py-2 text-sm leading-relaxed transition-transform duration-200 select-none touch-none",
                             getBubbleRadius(),
                             isOwn
                                 ? "bg-[#B5784A] text-[#FFFFFF] shadow-sm"
-                                : "bg-[#FFFFFF] text-[#1A1208] border border-[#E8E0D4] shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+                                : "bg-[#FFFFFF] text-[#1A1208] border border-[#E8E0D4] shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
+                            isLongPressed && "scale-95 shadow-lg brightness-95"
                         )}
                     >
                         <div className="flex items-end gap-2">
@@ -156,17 +188,23 @@ export function MessageBubble({
                     </div>
 
                     {/* Action buttons — react + delete */}
-                    <div className={cn("relative flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100", isOwn ? "pr-1" : "pl-1")}>
+                    <div className={cn(
+                        "relative flex shrink-0 items-center gap-0.5 transition-all duration-200 z-50",
+                        isOwn ? "pr-1" : "pl-1",
+                        isLongPressed
+                            ? "opacity-100 translate-y-0 scale-110"
+                            : "opacity-0 md:group-hover:opacity-100 pointer-events-none md:pointer-events-auto"
+                    )}>
                         {/* Emoji picker trigger */}
                         {onToggleReaction && (
                             <div className="relative">
                                 <button
                                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                                    className="rounded-lg p-1 text-[#B0A090] transition-all duration-200 hover:bg-[#F5EDE3] hover:text-[#1A1208]"
+                                    className="rounded-lg p-1.5 text-[#B0A090] transition-all duration-200 hover:bg-[#F5EDE3] hover:text-[#1A1208] active:bg-[#F5EDE3]"
                                     aria-label="Add reaction"
                                     title="React"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <circle cx="12" cy="12" r="10" />
                                         <path d="M8 14s1.5 2 4 2 4-2 4-2" />
                                         <line x1="9" x2="9.01" y1="9" y2="9" />
@@ -178,12 +216,12 @@ export function MessageBubble({
                                 {showEmojiPicker && (
                                     <>
                                         <div
-                                            className="fixed inset-0 z-40"
+                                            className="fixed inset-0 z-40 md:absolute md:inset-auto"
                                             onClick={() => setShowEmojiPicker(false)}
                                         />
                                         <div className={cn(
                                             "absolute z-50 flex gap-0.5 rounded-xl border-[1.5px] border-[#E8E0D4] bg-[#FFFFFF] p-1.5 shadow-xl shadow-[rgba(26,18,8,0.1)]",
-                                            isOwn ? "right-0 bottom-8" : "left-0 bottom-8"
+                                            isOwn ? "right-0 bottom-10" : "left-0 bottom-10"
                                         )}>
                                             {EMOJI_OPTIONS.map((emoji) => (
                                                 <button
@@ -191,8 +229,9 @@ export function MessageBubble({
                                                     onClick={() => {
                                                         onToggleReaction(messageId, emoji);
                                                         setShowEmojiPicker(false);
+                                                        setIsLongPressed(false);
                                                     }}
-                                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-base transition-all duration-150 hover:bg-[#F5EDE3] hover:scale-125 active:scale-90"
+                                                    className="flex h-9 w-9 items-center justify-center rounded-lg text-lg transition-all duration-150 hover:bg-[#F5EDE3] hover:scale-125 active:scale-90"
                                                 >
                                                     {emoji}
                                                 </button>
@@ -207,11 +246,11 @@ export function MessageBubble({
                         {isOwn && onDelete && !showConfirm && (
                             <button
                                 onClick={() => setShowConfirm(true)}
-                                className="rounded-lg p-1 text-[#B0A090] transition-all duration-200 hover:bg-[#EF4444]/10 hover:text-[#EF4444]"
+                                className="rounded-lg p-1.5 text-[#B0A090] transition-all duration-200 hover:bg-[#EF4444]/10 hover:text-[#EF4444] active:bg-[#EF4444]/10"
                                 aria-label="Delete message"
                                 title="Delete"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M3 6h18" />
                                     <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
                                     <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
@@ -226,14 +265,18 @@ export function MessageBubble({
                                     onClick={() => {
                                         onDelete?.(messageId);
                                         setShowConfirm(false);
+                                        setIsLongPressed(false);
                                     }}
-                                    className="rounded-lg px-2.5 py-1 text-xs font-medium text-[#EF4444] transition-all duration-200 hover:bg-[#EF4444]/10"
+                                    className="rounded-lg px-3 py-1.5 text-xs font-bold text-[#EF4444] transition-all duration-200 hover:bg-[#EF4444]/10"
                                 >
                                     Delete
                                 </button>
                                 <button
-                                    onClick={() => setShowConfirm(false)}
-                                    className="rounded-lg px-2.5 py-1 text-xs font-medium text-[#7A6A56] transition-all duration-200 hover:bg-[#F5EDE3]"
+                                    onClick={() => {
+                                        setShowConfirm(false);
+                                        setIsLongPressed(false);
+                                    }}
+                                    className="rounded-lg px-3 py-1.5 text-xs font-bold text-[#7A6A56] transition-all duration-200 hover:bg-[#F5EDE3]"
                                 >
                                     Cancel
                                 </button>
@@ -252,14 +295,14 @@ export function MessageBubble({
                                     key={r.emoji}
                                     onClick={() => onToggleReaction?.(messageId, r.emoji)}
                                     className={cn(
-                                        "flex items-center gap-1 rounded-full px-2 py-0.5 text-xs shadow-sm shadow-[rgba(26,18,8,0.08)] transition-all duration-200 hover:scale-110 active:scale-95",
+                                        "flex items-center gap-1 rounded-full px-2.5 py-1 text-xs shadow-sm shadow-[rgba(26,18,8,0.08)] transition-all duration-200 hover:scale-110 active:scale-95",
                                         isMine
                                             ? "bg-[#FFFFFF] ring-1 ring-[#B5784A] text-[#1A1208]"
                                             : "bg-[#FFFFFF] ring-1 ring-[#E8E0D4] text-[#7A6A56] hover:ring-[#B5784A] hover:bg-[#F5EDE3]"
                                     )}
                                 >
                                     <span>{r.emoji}</span>
-                                    <span className="font-medium tabular-nums">{r.count}</span>
+                                    <span className="font-bold tabular-nums">{r.count}</span>
                                 </button>
                             );
                         })}
