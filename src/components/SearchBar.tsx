@@ -26,7 +26,7 @@ export function SearchBar({
         <div className="relative">
             {/* Search icon */}
             <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#7a6a5e]/60"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#B0A090]"
                 xmlns="http://www.w3.org/2000/svg"
                 width="15"
                 height="15"
@@ -46,7 +46,7 @@ export function SearchBar({
                 value={currentValue}
                 onChange={handleChange}
                 placeholder={placeholder}
-                className="w-full rounded-xl border border-[#c4b5a8]/50 bg-[#edede9] py-2 pl-9 pr-3 text-sm font-medium text-[#3d2c2c] placeholder:text-[#7a6a5e]/50 focus:outline-none focus:ring-2 focus:ring-[#d5bdaf]/40 focus:border-[#d5bdaf]/40 transition-all duration-200"
+                className="w-full rounded-xl border-[1.5px] border-[#E8E0D4] bg-[#FFFFFF] py-2 pl-9 pr-3 text-sm font-medium text-[#1A1208] placeholder:text-[#7A6A56] focus:outline-none focus:ring-1 focus:ring-[#B5784A] focus:border-[#B5784A] transition-all duration-200"
             />
 
             {/* Clear button */}
@@ -56,7 +56,7 @@ export function SearchBar({
                         setInternalQuery("");
                         onChange?.("");
                     }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-sm p-0.5 text-[#7a6a5e]/50 transition-colors duration-200 hover:text-[#3d2c2c] hover:bg-[#e3d5ca]/50"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-sm p-0.5 text-[#B0A090] transition-colors duration-200 hover:text-[#1A1208] hover:bg-[#E8E0D4]/50"
                     aria-label="Clear search"
                 >
                     <svg

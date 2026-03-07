@@ -2,13 +2,14 @@
 
 import { MessageBubble } from "@/components/MessageBubble";
 import { MessageInput } from "@/components/MessageInput";
-import { formatRelativeTime } from "@/lib/utils";
-import { useQuery, useMutation } from "convex/react";
+import { formatRelativeTime, formatDateSeparator } from "@/lib/utils";
+import { useQuery, useMutation, usePaginatedQuery } from "convex/react";
 import { useUser } from "@clerk/nextjs";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, Fragment } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 import { ErrorBoundary } from "./ErrorBoundary";
 
 interface ChatWindowProps {
@@ -42,7 +43,7 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
             if (!currentUser?._id) return;
             deleteMessage({ messageId, senderId: currentUser._id }).catch(console.error);
         },
-        [deleteMessage, currentUser?._id]
+        [deleteMessage, currentUser]
     );
 
     // Reaction toggle handler
@@ -51,7 +52,7 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
             if (!currentUser?._id) return;
             toggleReaction({ messageId, userId: currentUser._id, emoji }).catch(console.error);
         },
-        [toggleReaction, currentUser?._id]
+        [toggleReaction, currentUser]
     );
 
     const conversation = useQuery(
@@ -71,11 +72,38 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
         ? allUsers.find((u) => u._id === otherMemberId)
         : undefined;
 
-    const messages = useQuery(
+    const otherUserReadReceipt = useQuery(
+        api.messages.getReadReceipt,
+        conversationId && otherMemberId
+            ? { conversationId: conversationId as Id<"conversations">, userId: otherMemberId }
+            : "skip"
+    );
+    const otherUserLastReadTime = otherUserReadReceipt?.lastReadTime ?? 0;
+
+    const currentUserReadReceipt = useQuery(
+        api.messages.getReadReceipt,
+        conversationId && currentUser?._id
+            ? { conversationId: conversationId as Id<"conversations">, userId: currentUser._id }
+            : "skip"
+    );
+
+    const [firstUnreadId, setFirstUnreadId] = useState<string | null>(null);
+    const [hasEvaluatedUnread, setHasEvaluatedUnread] = useState(false);
+
+    const [prevConversationId, setPrevConversationId] = useState<string | undefined>(conversationId);
+
+    if (conversationId !== prevConversationId) {
+        setPrevConversationId(conversationId);
+        setFirstUnreadId(null);
+        setHasEvaluatedUnread(false);
+    }
+
+    const { results: messages, status, loadMore } = usePaginatedQuery(
         api.messages.list,
         conversationId
             ? { conversationId: conversationId as Id<"conversations"> }
-            : "skip"
+            : "skip",
+        { initialNumItems: 50 }
     );
 
     const typingUsers = useQuery(
@@ -97,8 +125,20 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
         (t) => t && currentUser && t.userId !== currentUser._id
     );
 
-    const sortedMessages = (messages ?? [])
+    const sortedMessages = [...(messages ?? [])]
         .sort((a, b) => a.createdAt - b.createdAt);
+
+    useEffect(() => {
+        if (!hasEvaluatedUnread && messages !== undefined && currentUserReadReceipt !== undefined) {
+            const readTime = currentUserReadReceipt?.lastReadTime ?? 0;
+            const unreadMsg = sortedMessages.find(m => m.createdAt > readTime && m.senderId !== currentUser?._id);
+            if (unreadMsg) {
+                // Defer to avoid cascading render warning
+                setTimeout(() => setFirstUnreadId(unreadMsg._id), 0);
+            }
+            setTimeout(() => setHasEvaluatedUnread(true), 0);
+        }
+    }, [messages, currentUserReadReceipt, hasEvaluatedUnread, sortedMessages, currentUser?._id]);
 
     // ── Scroll Detection ─────────────────────────────────
     const checkIsAtBottom = useCallback(() => {
@@ -137,7 +177,8 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                 messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
             } else {
                 // User has scrolled up — show the floating button
-                setShowNewMessagesButton(true);
+                // Defer to avoid cascading render warning
+                setTimeout(() => setShowNewMessagesButton(true), 0);
             }
         } else if (currentCount > 0 && prevCount === 0) {
             // Initial load — jump to bottom instantly
@@ -146,6 +187,37 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
 
         prevMessageCountRef.current = currentCount;
     }, [sortedMessages.length, isAtBottom]);
+
+    // ── Toast Notifications on New Messages ──────────────
+    useEffect(() => {
+        if (!messages) return;
+
+        const latestMessage = sortedMessages[sortedMessages.length - 1];
+        if (!latestMessage) return;
+
+        // Skip if it's from the current user
+        if (latestMessage.senderId === currentUser?._id) return;
+
+        // Give priority to existing chat view auto-scroll logic, wait for next tick
+        setTimeout(() => {
+            // Only toast if the window is hidden/blurred or if we are loaded and checking logic
+            if (document.hidden && !latestMessage.deleted) {
+                // Determine sender name
+                const senderName = allUsers.find(u => u._id === latestMessage.senderId)?.name || "Someone";
+
+                toast(`New message from ${senderName}`, {
+                    style: {
+                        background: '#FFFFFF',
+                        color: '#1A1208',
+                        border: '1.5px solid #E8E0D4',
+                        borderRadius: '12px',
+                        fontFamily: 'Plus Jakarta Sans'
+                    },
+                });
+            }
+        }, 50);
+
+    }, [sortedMessages, currentUser?._id, allUsers, messages]);
 
     // Auto-scroll when typing indicator appears (if at bottom)
     useEffect(() => {
@@ -156,13 +228,13 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
 
     // ── Mark as Read ─────────────────────────────────────
     useEffect(() => {
-        if (conversationId && currentUser?._id) {
+        if (conversationId && currentUser?._id && hasEvaluatedUnread) {
             markRead({
                 conversationId: conversationId as Id<"conversations">,
                 userId: currentUser._id,
             }).catch(console.error);
         }
-    }, [conversationId, currentUser?._id, sortedMessages.length, markRead]);
+    }, [conversationId, currentUser?._id, sortedMessages.length, markRead, hasEvaluatedUnread]);
 
     // ── Scroll-to-Bottom Handler ─────────────────────────
     const scrollToBottom = useCallback(() => {
@@ -172,15 +244,15 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
 
     // ── Render ───────────────────────────────────────────
     return (
-        <div className="flex flex-1 flex-col bg-[#f5ebe0]">
+        <div className="flex flex-1 flex-col bg-[#FAF7F2]">
             {/* Header */}
-            <header className="flex items-center justify-between border-b border-[#e3d5ca] bg-[#edede9]/80 backdrop-blur-sm px-4 md:px-6 py-3.5">
+            <header className="flex items-center justify-between border-b-[1.5px] border-[#E8E0D4] bg-[#FFFFFF] px-4 md:px-6 py-3.5">
                 <div className="flex items-center gap-2 md:gap-3">
                     {/* Mobile back button */}
                     {conversationId && (
                         <button
                             onClick={() => router.push("/chat")}
-                            className="md:hidden shrink-0 rounded-lg p-1.5 text-[#7a6a5e] transition-all duration-200 hover:bg-[#e3d5ca]/50 hover:text-[#3d2c2c]"
+                            className="md:hidden shrink-0 rounded-lg p-1.5 text-[#7A6A56] transition-all duration-200 hover:bg-[#F5EDE3] hover:text-[#1A1208]"
                             aria-label="Back to conversations"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -193,7 +265,7 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                             {/* Avatar */}
                             <div className="relative shrink-0">
                                 {conversation?.isGroup ? (
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d5bdaf]/20 text-sm font-semibold text-[#8b6f5e]">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5EDE3] text-sm font-semibold text-[#B5784A]">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                                             <circle cx="9" cy="7" r="4" />
@@ -205,22 +277,22 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                                     <img
                                         src={otherUser.image}
                                         alt={otherUser.name}
-                                        className="h-10 w-10 rounded-full object-cover ring-1 ring-[#e3d5ca]"
+                                        className="h-10 w-10 rounded-full object-cover ring-1 ring-[#E8E0D4]"
                                     />
                                 ) : (
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d5bdaf]/20 text-sm font-semibold text-[#8b6f5e]">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5EDE3] text-sm font-semibold text-[#B5784A]">
                                         {otherUser?.name.charAt(0).toUpperCase()}
                                     </div>
                                 )}
                                 {!conversation?.isGroup && otherUser?.online && (
-                                    <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#edede9] bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                                    <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#FFFFFF] bg-[#34C759] shadow-[0_0_8px_rgba(52,199,89,0.4)]" />
                                 )}
                             </div>
                             <div>
-                                <h3 className="text-sm font-semibold text-[#3d2c2c]">
+                                <h3 className="text-sm font-semibold text-[#1A1208]">
                                     {conversation?.isGroup ? conversation.groupName : otherUser?.name}
                                 </h3>
-                                <p className={`text-xs ${conversation?.isGroup ? "text-[#7a6a5e]" : otherUser?.online ? "text-emerald-600" : "text-[#7a6a5e]"}`}>
+                                <p className={`text-xs ${conversation?.isGroup ? "text-[#7A6A56]" : otherUser?.online ? "text-[#34C759]" : "text-[#7A6A56]"}`}>
                                     {conversation?.isGroup
                                         ? `${conversation.members.length} members`
                                         : otherUser?.online
@@ -234,22 +306,22 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                     ) : conversationId ? (
                         <>
                             {/* Header Skeleton */}
-                            <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-[#e3d5ca]/50" />
+                            <div className="h-10 w-10 shrink-0 animate-pulse rounded-full" style={{ background: 'linear-gradient(135deg, #E8E0D4, #F5EDE3)' }} />
                             <div className="space-y-2 py-1">
-                                <div className="h-3.5 w-24 animate-pulse rounded-md bg-[#e3d5ca]/50" />
-                                <div className="h-3 w-16 animate-pulse rounded-md bg-[#e3d5ca]/40" />
+                                <div className="h-3.5 w-24 animate-pulse rounded-md" style={{ background: 'linear-gradient(135deg, #E8E0D4, #F5EDE3)' }} />
+                                <div className="h-3 w-16 animate-pulse rounded-md" style={{ background: 'linear-gradient(135deg, #E8E0D4, #F5EDE3)', opacity: 0.7 }} />
                             </div>
                         </>
                     ) : (
                         <>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e3d5ca]/40 text-sm font-medium text-[#7a6a5e]">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5EDE3] text-sm font-medium text-[#B0A090]">
                                 💬
                             </div>
                             <div>
-                                <h3 className="text-sm font-semibold text-[#3d2c2c]">
+                                <h3 className="text-sm font-semibold text-[#1A1208]">
                                     Select a conversation
                                 </h3>
-                                <p className="text-xs text-[#7a6a5e]">
+                                <p className="text-xs text-[#7A6A56]">
                                     Choose someone to chat with
                                 </p>
                             </div>
@@ -267,21 +339,36 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                     >
                         {conversationId ? (
                             <div className="mx-auto flex max-w-2xl flex-col">
-                                {messages === undefined ? (
+                                {status === "CanLoadMore" && (
+                                    <div className="flex justify-center py-4">
+                                        <button
+                                            onClick={() => loadMore(50)}
+                                            className="rounded-full bg-[#FFFFFF] px-4 py-1.5 text-xs font-semibold text-[#B5784A] border-[1.5px] border-[#E8E0D4] shadow-sm hover:bg-[#F5EDE3] transition-colors"
+                                        >
+                                            Load older messages
+                                        </button>
+                                    </div>
+                                )}
+                                {status === "LoadingMore" && (
+                                    <div className="flex justify-center py-4">
+                                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#B5784A] border-t-transparent" />
+                                    </div>
+                                )}
+                                {status === "LoadingFirstPage" ? (
                                     // Message Skeletons
                                     <div className="flex flex-col gap-4 p-4">
                                         {[1, 2, 3, 4, 5].map((i) => (
                                             <div key={i} className={`flex w-full items-end gap-2 ${i % 2 === 0 ? "flex-row-reverse" : "flex-row"}`}>
                                                 {i % 2 !== 0 && (
-                                                    <div className="h-8 w-8 shrink-0 animate-pulse rounded-full bg-[#e3d5ca]/40" />
+                                                    <div className="h-8 w-8 shrink-0 animate-pulse rounded-full" style={{ background: 'linear-gradient(135deg, #E8E0D4, #F5EDE3)' }} />
                                                 )}
                                                 <div className={`flex flex-col gap-1.5 ${i % 2 === 0 ? "items-end" : "items-start"}`}>
                                                     {i % 2 !== 0 && (
-                                                        <div className="h-2.5 w-16 animate-pulse rounded bg-[#e3d5ca]/30 ml-1" />
+                                                        <div className="h-2.5 w-16 animate-pulse rounded ml-1" style={{ background: 'linear-gradient(135deg, #E8E0D4, #F5EDE3)', opacity: 0.5 }} />
                                                     )}
-                                                    <div className={`h-10 animate-pulse rounded-2xl bg-[#e3d5ca]/30 ${i % 2 === 0 ? "w-48 rounded-br-md" : "w-56 rounded-bl-md"}`} />
+                                                    <div className={`h-10 animate-pulse rounded-2xl ${i % 2 === 0 ? "w-48 rounded-br-[4px]" : "w-56 rounded-bl-[4px]"}`} style={{ background: 'linear-gradient(135deg, #E8E0D4, #F5EDE3)' }} />
                                                     {i % 3 === 0 && (
-                                                        <div className={`h-8 animate-pulse rounded-2xl bg-[#e3d5ca]/20 ${i % 2 === 0 ? "w-32 rounded-br-md" : "w-40 rounded-bl-md"}`} />
+                                                        <div className={`h-8 animate-pulse rounded-2xl ${i % 2 === 0 ? "w-32 rounded-br-[4px]" : "w-40 rounded-bl-[4px]"}`} style={{ background: 'linear-gradient(135deg, #E8E0D4, #F5EDE3)', opacity: 0.6 }} />
                                                     )}
                                                 </div>
                                             </div>
@@ -289,15 +376,15 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                                     </div>
                                 ) : sortedMessages.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-20 text-center">
-                                        <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[#d5bdaf]/15">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#d5bdaf]">
+                                        <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full" style={{ background: 'rgba(181,120,74,0.08)' }}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#B0A090]" style={{ opacity: 0.4 }}>
                                                 <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
                                             </svg>
                                         </div>
-                                        <p className="text-base font-medium text-[#3d2c2c]">
+                                        <p className="text-base font-medium text-[#1A1208]" style={{ opacity: 0.4 }}>
                                             No messages yet
                                         </p>
-                                        <p className="mt-1.5 text-sm text-[#7a6a5e]">
+                                        <p className="mt-1.5 text-sm text-[#7A6A56]">
                                             Send the first message! 👋
                                         </p>
                                     </div>
@@ -316,28 +403,67 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                                             && !nextMsg.deleted
                                             && (nextMsg.createdAt - msg.createdAt) < GROUPING_WINDOW;
 
-                                        const isFirstInGroup = !sameSenderAsPrev;
+                                        let showDateSeparator = false;
+                                        let dateSeparatorText = "";
+
+                                        if (!prevMsg) {
+                                            showDateSeparator = true;
+                                            dateSeparatorText = formatDateSeparator(msg.createdAt);
+                                        } else {
+                                            const prevDate = new Date(prevMsg.createdAt);
+                                            const currDate = new Date(msg.createdAt);
+                                            if (
+                                                prevDate.getDate() !== currDate.getDate() ||
+                                                prevDate.getMonth() !== currDate.getMonth() ||
+                                                prevDate.getFullYear() !== currDate.getFullYear()
+                                            ) {
+                                                showDateSeparator = true;
+                                                dateSeparatorText = formatDateSeparator(msg.createdAt);
+                                            }
+                                        }
+
+                                        const isFirstInGroup = !sameSenderAsPrev || showDateSeparator;
                                         const isLastInGroup = !sameSenderAsNext;
 
                                         const sender = allUsers.find((u) => u._id === msg.senderId);
 
                                         return (
-                                            <MessageBubble
-                                                key={msg._id}
-                                                messageId={msg._id}
-                                                message={msg.content}
-                                                isOwn={currentUser?._id === msg.senderId}
-                                                timestamp={msg.createdAt}
-                                                deleted={msg.deleted}
-                                                onDelete={handleDeleteMessage}
-                                                reactions={reactionsMap[msg._id]}
-                                                currentUserId={currentUser?._id}
-                                                onToggleReaction={handleToggleReaction}
-                                                senderName={sender?.name}
-                                                senderImage={sender?.image}
-                                                isFirstInGroup={isFirstInGroup}
-                                                isLastInGroup={isLastInGroup}
-                                            />
+                                            <Fragment key={msg._id}>
+                                                {showDateSeparator && (
+                                                    <div className="flex w-full items-center gap-3 my-4">
+                                                        <div className="flex-1 h-[1px] bg-[#E8E0D4]" />
+                                                        <span className="text-[11px] font-bold tracking-wide text-[#7A6A56]">
+                                                            {dateSeparatorText}
+                                                        </span>
+                                                        <div className="flex-1 h-[1px] bg-[#E8E0D4]" />
+                                                    </div>
+                                                )}
+                                                {msg._id === firstUnreadId && (
+                                                    <div className="flex items-center gap-3 my-3">
+                                                        <div className="flex-1 h-px bg-[rgba(181,120,74,0.25)]" />
+                                                        <span className="text-[11px] font-semibold text-[#B5784A] border border-[#B5784A] rounded-full px-3 py-0.5 bg-transparent whitespace-nowrap">
+                                                            ↑ New messages
+                                                        </span>
+                                                        <div className="flex-1 h-px bg-[rgba(181,120,74,0.25)]" />
+                                                    </div>
+                                                )}
+                                                <MessageBubble
+                                                    messageId={msg._id}
+                                                    message={msg.content}
+                                                    isOwn={currentUser?._id === msg.senderId}
+                                                    timestamp={msg.createdAt}
+                                                    deleted={msg.deleted}
+                                                    onDelete={handleDeleteMessage}
+                                                    reactions={reactionsMap[msg._id]}
+                                                    currentUserId={currentUser?._id}
+                                                    onToggleReaction={handleToggleReaction}
+                                                    senderName={sender?.name}
+                                                    senderImage={sender?.image}
+                                                    isFirstInGroup={isFirstInGroup}
+                                                    isLastInGroup={isLastInGroup}
+                                                    isRead={msg.createdAt <= otherUserLastReadTime}
+                                                />
+                                            </Fragment>
                                         );
                                     })
                                 )}
@@ -345,16 +471,16 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                                 {/* Typing indicator */}
                                 {othersTyping.length > 0 && (
                                     <div className="flex w-full justify-start">
-                                        <div className="flex items-center gap-2 rounded-2xl rounded-bl-md bg-[#edede9] backdrop-blur-sm px-4 py-3 shadow-sm ring-1 ring-[#e3d5ca]">
-                                            <span className="text-xs font-medium text-[#7a6a5e]">
+                                        <div className="flex items-center gap-2 rounded-tl-[16px] rounded-tr-[16px] rounded-br-[16px] rounded-bl-[4px] bg-[#FFFFFF] px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.06)] ring-1 ring-[#E8E0D4]">
+                                            <span className="text-xs font-medium text-[#7A6A56]">
                                                 {othersTyping.map((t) => t?.name).join(", ")}
                                                 {othersTyping.length === 1 ? " is" : " are"} typing
                                             </span>
                                             {/* Animated dots */}
                                             <span className="flex items-center gap-0.5">
-                                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#d5bdaf]" style={{ animationDelay: "0ms" }} />
-                                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#d5bdaf]" style={{ animationDelay: "150ms" }} />
-                                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#d5bdaf]" style={{ animationDelay: "300ms" }} />
+                                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#B0A090]" style={{ animationDelay: "0ms" }} />
+                                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#B0A090]" style={{ animationDelay: "150ms" }} />
+                                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#B0A090]" style={{ animationDelay: "300ms" }} />
                                             </span>
                                         </div>
                                     </div>
@@ -365,12 +491,12 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                             </div>
                         ) : (
                             <div className="flex h-full flex-col items-center justify-center gap-3">
-                                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#e3d5ca]/40 border border-[#e3d5ca]">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#7a6a5e]">
+                                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#F5EDE3] border-[1.5px] border-[#E8E0D4]">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#B0A090]">
                                         <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
                                     </svg>
                                 </div>
-                                <p className="text-[#7a6a5e] font-medium">
+                                <p className="text-[#7A6A56] font-medium">
                                     Select a conversation to start messaging
                                 </p>
                             </div>
@@ -382,7 +508,7 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                 {showNewMessagesButton && (
                     <button
                         onClick={scrollToBottom}
-                        className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 animate-in fade-in slide-in-from-bottom-2 rounded-full bg-gradient-to-r from-[#d5bdaf] to-[#c4a898] px-4 py-2 text-xs font-semibold text-[#3d2c2c] shadow-lg shadow-[#d5bdaf]/25 transition-all duration-200 hover:shadow-xl hover:shadow-[#d5bdaf]/30 hover:-translate-y-0.5 active:scale-95"
+                        className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 animate-in fade-in slide-in-from-bottom-2 rounded-full bg-[#B5784A] px-4 py-2 text-xs font-semibold text-[#FFFFFF] shadow-lg shadow-[#B5784A]/25 transition-all duration-200 hover:bg-[#8F5A32] hover:shadow-xl hover:-translate-y-0.5 active:scale-95"
                     >
                         ↓ New messages
                     </button>

@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { paginationOptsValidator } from "convex/server";
 
 /**
  * Convex Messages API
@@ -10,14 +11,33 @@ import { v } from "convex/values";
 // ── Queries ──────────────────────────────────────────────
 
 export const list = query({
-    args: { conversationId: v.id("conversations") },
+    args: {
+        conversationId: v.id("conversations"),
+        paginationOpts: paginationOptsValidator,
+    },
     handler: async (ctx, args) => {
         return await ctx.db
             .query("messages")
             .withIndex("by_conversationId", (q) =>
                 q.eq("conversationId", args.conversationId)
             )
-            .collect();
+            .order("desc")
+            .paginate(args.paginationOpts);
+    },
+});
+
+export const getReadReceipt = query({
+    args: {
+        conversationId: v.id("conversations"),
+        userId: v.id("users"),
+    },
+    handler: async (ctx, args) => {
+        return await ctx.db
+            .query("readReceipts")
+            .withIndex("by_conversation_user", (q) =>
+                q.eq("conversationId", args.conversationId).eq("userId", args.userId)
+            )
+            .unique();
     },
 });
 

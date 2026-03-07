@@ -27,6 +27,7 @@ interface MessageBubbleProps {
     senderImage?: string;
     isFirstInGroup?: boolean;
     isLastInGroup?: boolean;
+    isRead?: boolean;
 }
 
 export function MessageBubble({
@@ -43,6 +44,7 @@ export function MessageBubble({
     senderImage,
     isFirstInGroup = true,
     isLastInGroup = true,
+    isRead = false,
 }: MessageBubbleProps) {
     const [showConfirm, setShowConfirm] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -52,15 +54,11 @@ export function MessageBubble({
     // Dynamic border radius for grouped messages
     const getBubbleRadius = () => {
         if (isOwn) {
-            if (isFirstInGroup && isLastInGroup) return "rounded-2xl rounded-br-md";
-            if (isFirstInGroup) return "rounded-2xl rounded-br-md rounded-br-md";
-            if (isLastInGroup) return "rounded-2xl rounded-tr-md rounded-br-md";
-            return "rounded-2xl rounded-r-md";
+            // 16px 16px 4px 16px — sharp bottom-right
+            return "rounded-tl-[16px] rounded-tr-[16px] rounded-bl-[16px] rounded-br-[4px]";
         } else {
-            if (isFirstInGroup && isLastInGroup) return "rounded-2xl rounded-bl-md";
-            if (isFirstInGroup) return "rounded-2xl rounded-bl-md";
-            if (isLastInGroup) return "rounded-2xl rounded-tl-md rounded-bl-md";
-            return "rounded-2xl rounded-l-md";
+            // 16px 16px 16px 4px — sharp bottom-left
+            return "rounded-tl-[16px] rounded-tr-[16px] rounded-br-[16px] rounded-bl-[4px]";
         }
     };
 
@@ -76,13 +74,11 @@ export function MessageBubble({
             >
                 <div
                     className={cn(
-                        "max-w-xs md:max-w-md rounded-2xl px-4 py-2 text-sm",
-                        isOwn
-                            ? "rounded-br-md bg-[#d5bdaf]/15"
-                            : "rounded-bl-md bg-[#edede9]/60"
+                        "max-w-xs md:max-w-md rounded-2xl px-4 py-2 text-sm border border-dashed border-[#E8E0D4]",
+                        isOwn ? "rounded-br-[4px]" : "rounded-bl-[4px]"
                     )}
                 >
-                    <p className="italic text-[#7a6a5e]/60">
+                    <p className="italic text-[#B0A090]">
                         🚫 This message was deleted
                     </p>
                 </div>
@@ -106,10 +102,10 @@ export function MessageBubble({
                         <img
                             src={senderImage}
                             alt={senderName || "User"}
-                            className="h-8 w-8 rounded-full object-cover ring-1 ring-[#e3d5ca]"
+                            className="h-8 w-8 rounded-full object-cover ring-1 ring-[#E8E0D4]"
                         />
                     ) : (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#d5bdaf]/20 text-xs font-semibold text-[#8b6f5e]">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F5EDE3] text-xs font-semibold text-[#B5784A]">
                             {senderName?.charAt(0).toUpperCase() ?? "?"}
                         </div>
                     )}
@@ -120,7 +116,7 @@ export function MessageBubble({
             <div className={cn("flex max-w-xs md:max-w-md flex-col", isOwn ? "items-end" : "items-start")}>
                 {/* Sender name — only for received, first in group */}
                 {!isOwn && isFirstInGroup && senderName && (
-                    <span className="mb-1 ml-1 text-[11px] font-medium text-[#7a6a5e]/70">
+                    <span className="mb-1 ml-1 text-[11px] font-medium text-[#7A6A56]">
                         {senderName}
                     </span>
                 )}
@@ -131,22 +127,28 @@ export function MessageBubble({
                         "px-4 py-2 text-sm leading-relaxed",
                         getBubbleRadius(),
                         isOwn
-                            ? "bg-gradient-to-br from-[#d5bdaf] to-[#c4a898] text-[#3d2c2c] shadow-sm shadow-[#d5bdaf]/15"
-                            : "bg-[#edede9] text-[#3d2c2c] ring-1 ring-[#e3d5ca] shadow-sm"
+                            ? "bg-[#B5784A] text-[#FFFFFF] shadow-sm"
+                            : "bg-[#FFFFFF] text-[#1A1208] border border-[#E8E0D4] shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
                     )}
                 >
-                    <p className="whitespace-pre-wrap break-words">{message}</p>
-                    {/* Show timestamp on last message in group, or when hovered */}
-                    {timestamp && isLastInGroup && (
-                        <span
-                            className={cn(
-                                "block text-right text-[10px] mt-1 tabular-nums",
-                                isOwn ? "text-[#3d2c2c]/40" : "text-[#7a6a5e]/60"
-                            )}
-                        >
-                            {formatMessageTimestamp(timestamp)}
-                        </span>
-                    )}
+                    <div className="flex items-end gap-2">
+                        <p className="whitespace-pre-wrap break-words">{message}</p>
+                        {timestamp && isLastInGroup && (
+                            <span
+                                className={cn(
+                                    "shrink-0 text-[10px] tabular-nums leading-[18px]",
+                                    isOwn ? "text-[rgba(255,255,255,0.7)]" : "text-[#B0A090]"
+                                )}
+                            >
+                                {formatMessageTimestamp(timestamp)}
+                                {isOwn && (
+                                    <span className="ml-1 text-[10px] text-[rgba(255,255,255,0.7)] font-bold">
+                                        {isRead ? "✓✓" : "✓"}
+                                    </span>
+                                )}
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 {/* Reaction pills */}
@@ -161,8 +163,8 @@ export function MessageBubble({
                                     className={cn(
                                         "flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-all duration-200 hover:scale-110 active:scale-95",
                                         isMine
-                                            ? "bg-[#d5bdaf]/25 ring-1 ring-[#d5bdaf]/30 text-[#3d2c2c]"
-                                            : "bg-[#e3d5ca]/50 text-[#7a6a5e] hover:bg-[#e3d5ca]/70"
+                                            ? "bg-[#FFFFFF] ring-1 ring-[#B5784A] text-[#1A1208]"
+                                            : "bg-[#FFFFFF] ring-1 ring-[#E8E0D4] text-[#7A6A56] hover:ring-[#B5784A] hover:bg-[#F5EDE3]"
                                     )}
                                 >
                                     <span>{r.emoji}</span>
@@ -181,7 +183,7 @@ export function MessageBubble({
                     <div className="relative">
                         <button
                             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                            className="rounded-lg p-1 text-[#7a6a5e]/20 opacity-0 transition-all duration-200 hover:bg-[#e3d5ca]/50 hover:text-[#3d2c2c] group-hover:opacity-100"
+                            className="rounded-lg p-1 text-[#B0A090] opacity-0 transition-all duration-200 hover:bg-[#F5EDE3] hover:text-[#1A1208] group-hover:opacity-100"
                             aria-label="Add reaction"
                             title="React"
                         >
@@ -201,7 +203,7 @@ export function MessageBubble({
                                     onClick={() => setShowEmojiPicker(false)}
                                 />
                                 <div className={cn(
-                                    "absolute z-50 flex gap-0.5 rounded-xl border border-[#e3d5ca] bg-[#f5ebe0]/95 backdrop-blur-xl p-1.5 shadow-xl shadow-[#3d2c2c]/10",
+                                    "absolute z-50 flex gap-0.5 rounded-xl border-[1.5px] border-[#E8E0D4] bg-[#FFFFFF] p-1.5 shadow-xl shadow-[rgba(26,18,8,0.1)]",
                                     isOwn ? "right-0 bottom-8" : "left-0 bottom-8"
                                 )}>
                                     {EMOJI_OPTIONS.map((emoji) => (
@@ -211,7 +213,7 @@ export function MessageBubble({
                                                 onToggleReaction(messageId, emoji);
                                                 setShowEmojiPicker(false);
                                             }}
-                                            className="flex h-8 w-8 items-center justify-center rounded-lg text-base transition-all duration-150 hover:bg-[#e3d5ca]/60 hover:scale-125 active:scale-90"
+                                            className="flex h-8 w-8 items-center justify-center rounded-lg text-base transition-all duration-150 hover:bg-[#F5EDE3] hover:scale-125 active:scale-90"
                                         >
                                             {emoji}
                                         </button>
@@ -226,7 +228,7 @@ export function MessageBubble({
                 {isOwn && onDelete && !showConfirm && (
                     <button
                         onClick={() => setShowConfirm(true)}
-                        className="rounded-lg p-1 text-[#7a6a5e]/20 opacity-0 transition-all duration-200 hover:bg-[#c4746e]/10 hover:text-[#c4746e] group-hover:opacity-100"
+                        className="rounded-lg p-1 text-[#B0A090] opacity-0 transition-all duration-200 hover:bg-[#EF4444]/10 hover:text-[#EF4444] group-hover:opacity-100"
                         aria-label="Delete message"
                         title="Delete"
                     >
@@ -240,19 +242,19 @@ export function MessageBubble({
 
                 {/* Inline confirmation */}
                 {showConfirm && (
-                    <div className="flex items-center gap-1 rounded-xl border border-[#e3d5ca] bg-[#f5ebe0]/95 backdrop-blur-xl p-1 shadow-lg shadow-[#3d2c2c]/10">
+                    <div className="flex items-center gap-1 rounded-xl border-[1.5px] border-[#E8E0D4] bg-[#FFFFFF] p-1 shadow-lg shadow-[rgba(26,18,8,0.1)]">
                         <button
                             onClick={() => {
                                 onDelete?.(messageId);
                                 setShowConfirm(false);
                             }}
-                            className="rounded-lg px-2.5 py-1 text-xs font-medium text-[#c4746e] transition-all duration-200 hover:bg-[#c4746e]/10"
+                            className="rounded-lg px-2.5 py-1 text-xs font-medium text-[#EF4444] transition-all duration-200 hover:bg-[#EF4444]/10"
                         >
                             Delete
                         </button>
                         <button
                             onClick={() => setShowConfirm(false)}
-                            className="rounded-lg px-2.5 py-1 text-xs font-medium text-[#7a6a5e] transition-all duration-200 hover:bg-[#e3d5ca]/50"
+                            className="rounded-lg px-2.5 py-1 text-xs font-medium text-[#7A6A56] transition-all duration-200 hover:bg-[#F5EDE3]"
                         >
                             Cancel
                         </button>

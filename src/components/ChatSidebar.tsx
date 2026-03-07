@@ -4,8 +4,8 @@ import { SearchBar } from "@/components/SearchBar";
 import { UserList } from "@/components/UserList";
 import { ConversationList } from "@/components/ConversationList";
 import { NewGroupModal } from "@/components/NewGroupModal";
-import { UserButton, useUser, useClerk } from "@clerk/nextjs";
-import { useMutation } from "convex/react";
+import { UserButton, useUser } from "@clerk/nextjs";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { useEffect, useState } from "react";
@@ -15,7 +15,6 @@ type SidebarTab = "chats" | "people";
 
 export function ChatSidebar() {
     const { user, isLoaded } = useUser();
-    const { signOut } = useClerk();
     const createUserIfNotExists = useMutation(api.users.createUserIfNotExists);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeTab, setActiveTab] = useState<SidebarTab>("chats");
@@ -23,6 +22,16 @@ export function ChatSidebar() {
     const router = useRouter();
     const params = useParams();
     const activeConversationId = params?.id as string | undefined;
+
+    const currentUser = useQuery(
+        api.users.getUser,
+        user?.id ? { clerkId: user.id } : "skip"
+    );
+
+    const enrichedConversations = useQuery(
+        api.conversations.getMyConversations,
+        currentUser?._id ? { userId: currentUser._id } : "skip"
+    );
 
     // Sync user to Convex on login
     useEffect(() => {
@@ -72,67 +81,63 @@ export function ChatSidebar() {
         router.push(`/conversation/${conversationId}`);
     };
 
-    return (
-        <aside className="flex h-full w-full md:w-80 flex-col border-r border-[#c4b5a8] bg-[#d6ccc2]">
-            {/* App brand + user header */}
-            <div className="flex items-center gap-3 border-b border-[#c4b5a8] px-4 py-4">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#d5bdaf] to-[#c4a898] text-lg shadow-sm shadow-[#d5bdaf]/20">
-                    💬
-                </div>
-                <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold tracking-tight text-[#3d2c2c]">
-                        {isLoaded && user ? (user.fullName || user.username || "User") : "TarsChat"}
-                    </p>
-                    <p className="truncate text-[11px] text-[#7a6a5e]">
-                        {user?.primaryEmailAddress?.emailAddress ?? (isLoaded ? "Personal Account" : "Loading...")}
-                    </p>
-                </div>
-                <UserButton
-                    appearance={{
-                        elements: {
-                            avatarBox: "h-8 w-8 ring-2 ring-[#c4b5a8] hover:ring-[#d5bdaf] transition-all shadow-sm",
-                        },
-                    }}
-                />
-                {/* Sign out button */}
-                <button
-                    onClick={() => signOut({ redirectUrl: "/" })}
-                    className="shrink-0 rounded-lg p-1.5 text-[#7a6a5e] transition-all duration-200 hover:bg-[#c4746e]/10 hover:text-[#c4746e]"
-                    aria-label="Sign out"
-                    title="Sign out"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                        <polyline points="16 17 21 12 16 7" />
-                        <line x1="21" y1="12" x2="9" y2="12" />
-                    </svg>
-                </button>
-            </div>
+    useEffect(() => {
+        const unreadTotal = enrichedConversations?.reduce((acc, c) => acc + (c.unreadCount ?? 0), 0) || 0;
+        document.title = unreadTotal > 0 ? `(${unreadTotal}) TarsChat` : `TarsChat`;
+    }, [enrichedConversations]);
 
-            {/* Tab switcher */}
-            <div className="flex border-b border-[#c4b5a8]">
-                <button
-                    onClick={() => { setActiveTab("chats"); setSearchQuery(""); }}
-                    className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-all duration-200 ${activeTab === "chats"
-                        ? "border-b-2 border-[#d5bdaf] text-[#3d2c2c]"
-                        : "text-[#7a6a5e] hover:text-[#3d2c2c]"
-                        }`}
-                >
-                    Chats
-                </button>
-                <button
-                    onClick={() => { setActiveTab("people"); setSearchQuery(""); }}
-                    className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-all duration-200 ${activeTab === "people"
-                        ? "border-b-2 border-[#d5bdaf] text-[#3d2c2c]"
-                        : "text-[#7a6a5e] hover:text-[#3d2c2c]"
-                        }`}
-                >
-                    People
-                </button>
+    return (
+        <aside className="flex h-full w-full md:w-80 flex-col bg-[#F2EDE4] border-r border-[#E8E0D4]">
+            {/* App brand + user header + tabs */}
+            <div className="bg-[#FFFFFF] border-b border-[#E8E0D4]">
+                <div className="flex items-center gap-3 px-5 py-5 pb-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#B5784A] text-lg shadow-sm">
+                        💬
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold tracking-tight text-[#1A1208]">
+                            {isLoaded && user ? (user.fullName || user.username || "User") : "TarsChat"}
+                        </p>
+                        <p className="truncate text-[11px] text-[#7A6A56]">
+                            {user?.primaryEmailAddress?.emailAddress ?? (isLoaded ? "Personal Account" : "Loading...")}
+                        </p>
+                    </div>
+                    <UserButton
+                        appearance={{
+                            elements: {
+                                avatarBox: "h-8 w-8 ring-2 ring-[#E8E0D4] hover:ring-[#B5784A] transition-all shadow-sm",
+                            },
+                        }}
+                    />
+                </div>
+
+                {/* Pill Tab Switcher */}
+                <div className="px-5 pb-4">
+                    <div className="flex items-center rounded-full bg-[#F2EDE4] p-1">
+                        <button
+                            onClick={() => { setActiveTab("chats"); setSearchQuery(""); }}
+                            className={`flex-1 rounded-full py-2 text-xs font-bold tracking-wider transition-all duration-300 ${activeTab === "chats"
+                                ? "bg-[#FFFFFF] text-[#B5784A] shadow-[0_1px_4px_rgba(0,0,0,0.07)]"
+                                : "text-[#7A6A56] hover:text-[#1A1208]"
+                                }`}
+                        >
+                            Chats
+                        </button>
+                        <button
+                            onClick={() => { setActiveTab("people"); setSearchQuery(""); }}
+                            className={`flex-1 rounded-full py-2 text-xs font-bold tracking-wider transition-all duration-300 ${activeTab === "people"
+                                ? "bg-[#FFFFFF] text-[#B5784A] shadow-[0_1px_4px_rgba(0,0,0,0.07)]"
+                                : "text-[#7A6A56] hover:text-[#1A1208]"
+                                }`}
+                        >
+                            People
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* Search and Actions */}
-            <div className="flex items-center gap-2 px-3 py-3">
+            <div className="flex items-center gap-2 px-5 pt-4 pb-4">
                 <div className="flex-1">
                     <SearchBar
                         placeholder={activeTab === "chats" ? "Search conversations…" : "Search users…"}
@@ -143,18 +148,15 @@ export function ChatSidebar() {
                 {activeTab === "chats" && (
                     <button
                         onClick={() => setIsGroupModalOpen(true)}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#d5bdaf]/20 text-[#8b6f5e] transition-all duration-200 hover:bg-[#d5bdaf] hover:text-[#3d2c2c] hover:shadow-md hover:shadow-[#d5bdaf]/20 active:scale-95"
+                        className="flex h-[37px] shrink-0 items-center gap-1.5 justify-center rounded-xl border-[1.5px] border-[#E8E0D4] bg-[#FFFFFF] px-3.5 text-xs font-bold text-[#7A6A56] transition-all duration-200 hover:border-[#B5784A] hover:text-[#B5784A] active:scale-95"
                         aria-label="New Group Chat"
                         title="New Group Chat"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                            <circle cx="9" cy="7" r="4" />
-                            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                            <line x1="19" y1="8" x2="19" y2="14" />
-                            <line x1="22" y1="11" x2="16" y2="11" />
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
                         </svg>
+                        <span>Group</span>
                     </button>
                 )}
             </div>

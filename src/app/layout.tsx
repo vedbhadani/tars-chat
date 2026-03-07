@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ConvexClientProvider } from "@/components/providers/ConvexClientProvider";
+import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -36,56 +38,65 @@ export default function RootLayout({
       }}
       appearance={{
         variables: {
-          colorPrimary: "#d5bdaf",
-          colorBackground: "#edede9",
-          colorText: "#3d2c2c",
-          colorTextSecondary: "#7a6a5e",
-          colorInputBackground: "#f5ebe0",
-          colorInputText: "#3d2c2c",
+          colorPrimary: "#B5784A",
+          colorBackground: "#FFFFFF",
+          colorText: "#1A1208",
+          colorTextSecondary: "#7A6A56",
+          colorInputBackground: "#FAF7F2",
+          colorInputText: "#1A1208",
           borderRadius: "0.75rem",
         },
         elements: {
           card: {
-            backgroundColor: "#edede9",
-            border: "1px solid #e3d5ca",
-            boxShadow: "0 16px 48px -12px rgba(61, 44, 44, 0.12)",
+            backgroundColor: "#FFFFFF",
+            border: "1.5px solid #E8E0D4",
+            borderRadius: "20px",
+            boxShadow: "0 2px 4px rgba(26,18,8,0.04), 0 12px 32px rgba(26,18,8,0.10)",
           },
           formFieldInput: {
-            backgroundColor: "#f5ebe0 !important",
-            color: "#3d2c2c !important",
-            borderColor: "#e3d5ca !important",
+            backgroundColor: "#FAF7F2 !important",
+            color: "#1A1208 !important",
+            borderColor: "#E8E0D4 !important",
           },
           formFieldLabel: {
-            color: "#7a6a5e !important",
+            color: "#7A6A56 !important",
           },
           headerTitle: {
-            color: "#3d2c2c !important",
+            color: "#1A1208 !important",
           },
           headerSubtitle: {
-            color: "#7a6a5e !important",
+            color: "#7A6A56 !important",
           },
           socialButtonsIconButton: {
-            backgroundColor: "#f5ebe0 !important",
-            border: "1px solid #e3d5ca !important",
+            backgroundColor: "#FFFFFF !important",
+            border: "1.5px solid #E8E0D4 !important",
           },
           footerActionText: {
-            color: "#7a6a5e !important",
+            color: "#7A6A56 !important",
+          },
+          footer: {
+            backgroundColor: "#F5EDE3",
+            borderTop: "1.5px solid #E8E0D4",
+          },
+          footerAction: {
+            backgroundColor: "#F5EDE3",
           },
           footerActionLink: {
-            color: "#8b6f5e !important",
+            color: "#B5784A !important",
             fontWeight: "600 !important",
           },
           modalCloseButton: {
-            color: "#3d2c2c !important",
+            color: "#1A1208 !important",
             opacity: "0.7 !important",
           },
         },
       }}
     >
       <html lang="en">
-        <body className={`${inter.variable} font-sans antialiased`}>
+        <body className={`${jakarta.variable} font-sans antialiased`}>
           <ConvexClientProvider>
             <div className="flex min-h-screen flex-col">{children}</div>
+            <Toaster position="top-right" />
           </ConvexClientProvider>
         </body>
       </html>
