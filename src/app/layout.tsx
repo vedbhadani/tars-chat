@@ -47,11 +47,19 @@ export default function RootLayout({
           borderRadius: "0.75rem",
         },
         elements: {
-          card: {
+          cardBox: {
             backgroundColor: "#FFFFFF",
             border: "1.5px solid #E8E0D4",
             borderRadius: "20px",
             boxShadow: "0 2px 4px rgba(26,18,8,0.04), 0 12px 32px rgba(26,18,8,0.10)",
+            overflow: "hidden",
+          },
+          card: {
+            backgroundColor: "transparent",
+            border: "none",
+            borderRadius: "0",
+            boxShadow: "none",
+            width: "100%",
           },
           formFieldInput: {
             backgroundColor: "#FAF7F2 !important",
@@ -79,7 +87,8 @@ export default function RootLayout({
             borderTop: "1.5px solid #E8E0D4",
           },
           footerAction: {
-            backgroundColor: "#F5EDE3",
+            backgroundColor: "transparent",
+            padding: "0",
           },
           footerActionLink: {
             color: "#B5784A !important",
@@ -88,6 +97,9 @@ export default function RootLayout({
           modalCloseButton: {
             color: "#1A1208 !important",
             opacity: "0.7 !important",
+            border: "none !important",
+            backgroundColor: "transparent !important",
+            boxShadow: "none !important",
           },
         },
       }}

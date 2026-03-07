@@ -517,10 +517,12 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
 
             {/* Input area */}
             {conversationId && currentUser && (
-                <MessageInput
-                    conversationId={conversationId as Id<"conversations">}
-                    senderId={currentUser._id}
-                />
+                <div className="bg-[#FFFFFF] pb-4">
+                    <MessageInput
+                        conversationId={conversationId as Id<"conversations">}
+                        senderId={currentUser._id}
+                    />
+                </div>
             )}
         </div>
     );

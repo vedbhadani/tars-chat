@@ -89,30 +89,36 @@ export function ChatSidebar() {
     return (
         <aside className="flex h-full w-full md:w-80 flex-col bg-[#F2EDE4] border-r border-[#E8E0D4]">
             {/* App brand + user header + tabs */}
-            <div className="bg-[#FFFFFF] border-b border-[#E8E0D4]">
-                <div className="flex items-center gap-3 px-5 py-5 pb-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#B5784A] text-lg shadow-sm">
+            <div className="bg-[#FFFFFF] border-b border-[#E8E0D4] px-5 pt-5 pb-4">
+                {/* 1. App Brand */}
+                <div className="flex items-center justify-center gap-2 mb-6">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#B5784A] text-xl shadow-sm">
                         💬
                     </div>
-                    <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-bold tracking-tight text-[#1A1208]">
-                            {isLoaded && user ? (user.fullName || user.username || "User") : "TarsChat"}
-                        </p>
-                        <p className="truncate text-[11px] text-[#7A6A56]">
-                            {user?.primaryEmailAddress?.emailAddress ?? (isLoaded ? "Personal Account" : "Loading...")}
-                        </p>
-                    </div>
-                    <UserButton
-                        appearance={{
-                            elements: {
-                                avatarBox: "h-8 w-8 ring-2 ring-[#E8E0D4] hover:ring-[#B5784A] transition-all shadow-sm",
-                            },
-                        }}
-                    />
+                    <span className="text-2xl font-bold tracking-tight text-[#1A1208]">TarsChat</span>
                 </div>
 
-                {/* Pill Tab Switcher */}
-                <div className="px-5 pb-4">
+                {/* 2. User Profile Stack */}
+                <div className="flex flex-col items-center justify-center text-center">
+                    <div className="mb-2">
+                        <UserButton
+                            appearance={{
+                                elements: {
+                                    avatarBox: "h-16 w-16 ring-4 ring-[#F2EDE4] hover:ring-[#B5784A] transition-all shadow-sm",
+                                },
+                            }}
+                        />
+                    </div>
+                    <p className="text-[15px] font-bold tracking-tight text-[#1A1208]">
+                        {isLoaded && user ? (user.fullName || user.username || "User") : "Guest User"}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-[#7A6A56]">
+                        {user?.primaryEmailAddress?.emailAddress ?? (isLoaded ? "Personal Account" : "Loading...")}
+                    </p>
+                </div>
+
+                {/* 3. Pill Tab Switcher */}
+                <div className="mt-6">
                     <div className="flex items-center rounded-full bg-[#F2EDE4] p-1">
                         <button
                             onClick={() => { setActiveTab("chats"); setSearchQuery(""); }}
