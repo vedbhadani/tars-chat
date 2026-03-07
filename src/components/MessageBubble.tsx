@@ -1,7 +1,7 @@
 "use client";
 
 import { cn, formatMessageTimestamp } from "@/lib/utils";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Id } from "../../convex/_generated/dataModel";
 
 const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢"];
@@ -50,6 +50,7 @@ export function MessageBubble({
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [isLongPressed, setIsLongPressed] = useState(false);
     const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const handleTouchStart = () => {
         // Only trigger for mobile/touch
@@ -65,6 +66,20 @@ export function MessageBubble({
         }
     };
 
+    // Close on scroll
+    useEffect(() => {
+        if (!isLongPressed) return;
+
+        const handleScroll = () => {
+            setIsLongPressed(false);
+            setShowConfirm(false);
+            setShowEmojiPicker(false);
+        };
+
+        window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
+        return () => window.removeEventListener("scroll", handleScroll, { capture: true });
+    }, [isLongPressed]);
+
     const hasReactions = reactions && reactions.length > 0;
 
     // Dynamic border radius for grouped messages
@@ -78,14 +93,14 @@ export function MessageBubble({
         }
     };
 
-    // Deleted message tombstone
     if (deleted) {
         return (
             <div
                 className={cn(
-                    "flex w-full",
+                    "flex w-full animate-message-enter",
                     isOwn ? "justify-end" : "justify-start",
-                    !isOwn && "pl-10"
+                    !isOwn && !isFirstInGroup && "pl-10",
+                    isFirstInGroup ? "mt-3" : "mt-0.5"
                 )}
             >
                 <div
@@ -104,6 +119,7 @@ export function MessageBubble({
 
     return (
         <div
+            ref={containerRef}
             className={cn(
                 "group flex w-full items-end gap-2 animate-message-enter relative",
                 isOwn ? "flex-row-reverse" : "flex-row",
@@ -115,7 +131,8 @@ export function MessageBubble({
             {isLongPressed && (
                 <div
                     className="fixed inset-0 z-40 bg-black/5 md:hidden"
-                    onClick={() => {
+                    onClick={(e) => {
+                        e.stopPropagation();
                         setIsLongPressed(false);
                         setShowEmojiPicker(false);
                         setShowConfirm(false);
@@ -151,25 +168,67 @@ export function MessageBubble({
 
                 {/* Bubble & Action Buttons Wrapper */}
                 <div className={cn("relative flex items-center gap-2", isOwn ? "flex-row-reverse" : "flex-row")}>
-                    {/* Floating Emoji Bar (WhatsApp style) */}
-                    {isLongPressed && onToggleReaction && (
+                    {/* Unified Floating Action Bar (WhatsApp style) */}
+                    {isLongPressed && (
                         <div className={cn(
-                            "absolute -top-14 z-[60] flex items-center gap-1 rounded-full bg-white p-1.5 shadow-2xl border-[1.5px] border-[#E8E0D4] animate-in slide-in-from-bottom-2 duration-200",
-                            isOwn ? "right-0" : "left-0"
+                            "absolute z-[60] flex items-center gap-1 rounded-full bg-white p-1.5 shadow-2xl border-[1.5px] border-[#E8E0D4] animate-in slide-in-from-bottom-2 duration-200",
+                            isOwn ? "right-0" : "left-0",
+                            "-top-14" // Positioning above bubble
                         )}>
-                            {EMOJI_OPTIONS.map((emoji) => (
-                                <button
-                                    key={emoji}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onToggleReaction(messageId, emoji);
-                                        setIsLongPressed(false);
-                                    }}
-                                    className="flex h-10 w-10 items-center justify-center rounded-full text-xl transition-all duration-150 hover:bg-[#F5EDE3] hover:scale-125 active:scale-90"
-                                >
-                                    {emoji}
-                                </button>
-                            ))}
+                            {!showConfirm ? (
+                                <>
+                                    {onToggleReaction && EMOJI_OPTIONS.map((emoji) => (
+                                        <button
+                                            key={emoji}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onToggleReaction(messageId, emoji);
+                                                setIsLongPressed(false);
+                                            }}
+                                            className="flex h-10 w-10 items-center justify-center rounded-full text-xl transition-all duration-150 hover:bg-[#F5EDE3] hover:scale-125 active:scale-90"
+                                        >
+                                            {emoji}
+                                        </button>
+                                    ))}
+                                    {isOwn && onDelete && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setShowConfirm(true);
+                                            }}
+                                            className="flex h-10 w-11 items-center justify-center rounded-full text-[#B0A090] transition-all duration-150 hover:bg-[#EF4444]/10 hover:text-[#EF4444]"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                </>
+                            ) : (
+                                <div className="flex items-center gap-1.5 px-1 py-1">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onDelete?.(messageId);
+                                            setShowConfirm(false);
+                                            setIsLongPressed(false);
+                                        }}
+                                        className="rounded-full px-4 py-2 text-sm font-bold text-[#EF4444] transition-all duration-200 hover:bg-[#EF4444]/10"
+                                    >
+                                        Delete
+                                    </button>
+                                    <div className="h-6 w-[1.5px] bg-[#E8E0D4] mx-1" />
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowConfirm(false);
+                                        }}
+                                        className="rounded-full px-4 py-2 text-sm font-bold text-[#7A6A56] transition-all duration-200 hover:bg-[#F5EDE3]"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -214,23 +273,20 @@ export function MessageBubble({
                         </div>
                     </div>
 
-                    {/* Action buttons — react + delete */}
+                    {/* Desktop Hover Action buttons — react + delete */}
                     <div className={cn(
-                        "flex shrink-0 items-center gap-1 transition-all duration-200 z-50",
-                        isLongPressed
-                            ? "opacity-100 translate-y-0"
-                            : "opacity-0 md:group-hover:opacity-100 pointer-events-none md:pointer-events-auto"
+                        "hidden md:flex shrink-0 items-center gap-1 transition-all duration-200 z-50",
+                        "opacity-0 group-hover:opacity-100"
                     )}>
-                        {/* Emoji picker trigger (Desktop only or redundancy) */}
                         {onToggleReaction && (
                             <div className="relative">
                                 <button
                                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                                    className="rounded-full p-2 text-[#B0A090] transition-all duration-200 hover:bg-[#F5EDE3] hover:text-[#1A1208] active:bg-[#F5EDE3] md:rounded-lg md:p-1.5"
+                                    className="rounded-lg p-1.5 text-[#B0A090] transition-all duration-200 hover:bg-[#F5EDE3] hover:text-[#1A1208] active:bg-[#F5EDE3]"
                                     aria-label="Add reaction"
                                     title="React"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="md:w-4 md:h-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <circle cx="12" cy="12" r="10" />
                                         <path d="M8 14s1.5 2 4 2 4-2 4-2" />
                                         <line x1="9" x2="9.01" y1="9" y2="9" />
@@ -238,15 +294,14 @@ export function MessageBubble({
                                     </svg>
                                 </button>
 
-                                {/* Emoji picker dropdown (Fallback for desktop) */}
                                 {showEmojiPicker && (
                                     <>
                                         <div
-                                            className="fixed inset-0 z-40 md:absolute md:inset-auto"
+                                            className="absolute inset-auto z-40"
                                             onClick={() => setShowEmojiPicker(false)}
                                         />
                                         <div className={cn(
-                                            "absolute z-50 flex gap-1 rounded-full border-[1.5px] border-[#E8E0D4] bg-[#FFFFFF] p-2 shadow-2xl md:rounded-xl md:p-1.5 md:gap-0.5 md:shadow-xl",
+                                            "absolute z-50 flex gap-0.5 rounded-xl border-[1.5px] border-[#E8E0D4] bg-[#FFFFFF] p-1.5 shadow-xl",
                                             isOwn ? "right-0 bottom-12" : "left-0 bottom-12",
                                         )}>
                                             {EMOJI_OPTIONS.map((emoji) => (
@@ -255,9 +310,8 @@ export function MessageBubble({
                                                     onClick={() => {
                                                         onToggleReaction(messageId, emoji);
                                                         setShowEmojiPicker(false);
-                                                        setIsLongPressed(false);
                                                     }}
-                                                    className="flex h-10 w-10 items-center justify-center rounded-full text-xl transition-all duration-150 hover:bg-[#F5EDE3] hover:scale-125 active:scale-90 md:h-9 md:w-9 md:rounded-lg md:text-lg"
+                                                    className="flex h-9 w-9 items-center justify-center rounded-lg text-lg transition-all duration-150 hover:bg-[#F5EDE3] hover:scale-125 active:scale-90"
                                                 >
                                                     {emoji}
                                                 </button>
@@ -268,15 +322,14 @@ export function MessageBubble({
                             </div>
                         )}
 
-                        {/* Delete trigger — only for own messages */}
-                        {isOwn && onDelete && !showConfirm && (
+                        {isOwn && onDelete && (
                             <button
                                 onClick={() => setShowConfirm(true)}
-                                className="rounded-full p-2 text-[#B0A090] transition-all duration-200 hover:bg-[#EF4444]/10 hover:text-[#EF4444] active:bg-[#EF4444]/10 md:rounded-lg md:p-1.5"
+                                className="rounded-lg p-1.5 text-[#B0A090] transition-all duration-200 hover:bg-[#EF4444]/10 hover:text-[#EF4444] active:bg-[#EF4444]/10"
                                 aria-label="Delete message"
                                 title="Delete"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="md:w-4 md:h-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M3 6h18" />
                                     <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
                                     <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
@@ -284,25 +337,20 @@ export function MessageBubble({
                             </button>
                         )}
 
-                        {/* Inline confirmation */}
                         {showConfirm && (
-                            <div className="flex items-center gap-1 rounded-full border-[1.5px] border-[#E8E0D4] bg-[#FFFFFF] p-1 shadow-2xl md:rounded-xl md:shadow-lg">
+                            <div className="absolute z-[70] flex items-center gap-1 rounded-xl border-[1.5px] border-[#E8E0D4] bg-[#FFFFFF] p-1 shadow-lg ring-1 ring-black/5 min-w-[140px]" style={{ [isOwn ? 'right' : 'left']: '100%', top: '50%', transform: 'translateY(-50%)' }}>
                                 <button
                                     onClick={() => {
                                         onDelete?.(messageId);
                                         setShowConfirm(false);
-                                        setIsLongPressed(false);
                                     }}
-                                    className="rounded-full px-4 py-2 text-xs font-bold text-[#EF4444] transition-all duration-200 hover:bg-[#EF4444]/10 md:rounded-lg md:px-3 md:py-1.5"
+                                    className="rounded-lg px-3 py-1.5 text-xs font-bold text-[#EF4444] transition-all duration-200 hover:bg-[#EF4444]/10"
                                 >
                                     Delete
                                 </button>
                                 <button
-                                    onClick={() => {
-                                        setShowConfirm(false);
-                                        setIsLongPressed(false);
-                                    }}
-                                    className="rounded-full px-4 py-2 text-xs font-bold text-[#7A6A56] transition-all duration-200 hover:bg-[#F5EDE3] md:rounded-lg md:px-3 md:py-1.5"
+                                    onClick={() => setShowConfirm(false)}
+                                    className="rounded-lg px-3 py-1.5 text-xs font-bold text-[#7A6A56] transition-all duration-200 hover:bg-[#F5EDE3]"
                                 >
                                     Cancel
                                 </button>
