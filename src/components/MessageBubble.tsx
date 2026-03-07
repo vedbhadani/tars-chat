@@ -66,18 +66,39 @@ export function MessageBubble({
         }
     };
 
-    // Close on scroll
+    // Close on outside click or scroll
     useEffect(() => {
         if (!isLongPressed) return;
 
-        const handleScroll = () => {
+        const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+            const target = event.target as Node;
+            // Only close if the click is truly outside our bubble and its overlays
+            if (containerRef.current && !containerRef.current.contains(target)) {
+                setIsLongPressed(false);
+                setShowConfirm(false);
+                setShowEmojiPicker(false);
+            }
+        };
+
+        const handleDismiss = () => {
             setIsLongPressed(false);
             setShowConfirm(false);
             setShowEmojiPicker(false);
         };
 
-        window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
-        return () => window.removeEventListener("scroll", handleScroll, { capture: true });
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("touchstart", handleClickOutside);
+        // Use capture: true to catch scrolls anywhere in the app
+        window.addEventListener("scroll", handleDismiss, { capture: true, passive: true });
+        // Also listen for touchmove to close quickly on mobile
+        window.addEventListener("touchmove", handleDismiss, { capture: true, passive: true });
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("touchstart", handleClickOutside);
+            window.removeEventListener("scroll", handleDismiss, { capture: true });
+            window.removeEventListener("touchmove", handleDismiss, { capture: true });
+        };
     }, [isLongPressed]);
 
     const hasReactions = reactions && reactions.length > 0;
@@ -127,16 +148,11 @@ export function MessageBubble({
                 isFirstInGroup ? "mt-3" : "mt-0.5"
             )}
         >
-            {/* Context menu backdrop for mobile */}
+            {/* Context menu backdrop for mobile - non-blocking to allow scroll flow */}
             {isLongPressed && (
                 <div
-                    className="fixed inset-0 z-40 bg-black/5 md:hidden"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setIsLongPressed(false);
-                        setShowEmojiPicker(false);
-                        setShowConfirm(false);
-                    }}
+                    className="fixed inset-0 z-40 bg-black/5 md:hidden pointer-events-none"
+                    aria-hidden="true"
                 />
             )}
 
