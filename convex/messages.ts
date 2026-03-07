@@ -37,7 +37,7 @@ export const getReadReceipt = query({
             .withIndex("by_conversation_user", (q) =>
                 q.eq("conversationId", args.conversationId).eq("userId", args.userId)
             )
-            .unique();
+            .first();
     },
 });
 
@@ -89,7 +89,7 @@ export const markRead = mutation({
             .withIndex("by_conversation_user", (q) =>
                 q.eq("conversationId", args.conversationId).eq("userId", args.userId)
             )
-            .unique();
+            .first();
 
         const now = Date.now();
 
