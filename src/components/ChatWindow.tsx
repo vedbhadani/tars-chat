@@ -11,7 +11,6 @@ import { useEffect, useRef, useState, useCallback, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { ErrorBoundary } from "./ErrorBoundary";
-import { Logo } from "./Logo";
 
 interface ChatWindowProps {
     conversationId?: string;
@@ -315,7 +314,9 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                         </>
                     ) : (
                         <>
-                            <Logo showText={false} size="md" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5EDE3] text-sm font-medium text-[#B0A090]">
+                                💬
+                            </div>
                             <div>
                                 <h3 className="text-sm font-semibold text-[#1A1208]">
                                     Select a conversation
@@ -489,9 +490,13 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                                 <div ref={messagesEndRef} />
                             </div>
                         ) : (
-                            <div className="flex h-full flex-col items-center justify-center gap-6">
-                                <Logo showText={true} size="xl" className="flex-col !gap-6 text-center" />
-                                <p className="text-[#7A6A56] font-medium opacity-60">
+                            <div className="flex h-full flex-col items-center justify-center gap-3">
+                                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#F5EDE3] border-[1.5px] border-[#E8E0D4]">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#B0A090]">
+                                        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                                    </svg>
+                                </div>
+                                <p className="text-[#7A6A56] font-medium">
                                     Select a conversation to start messaging
                                 </p>
                             </div>

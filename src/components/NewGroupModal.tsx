@@ -5,7 +5,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { useUser } from "@clerk/nextjs";
-import { Logo } from "./Logo";
 
 interface NewGroupModalProps {
     isOpen: boolean;
@@ -87,8 +86,10 @@ export function NewGroupModal({ isOpen, onClose, onGroupCreated }: NewGroupModal
                 <div className="flex flex-col p-6 sm:p-8">
                     <div className="flex items-center justify-between mb-6">
                         <div>
-                            <Logo size="md" />
-                            <p className="text-[11px] font-bold text-[#7A6A56] mt-2 uppercase tracking-wider ml-1">
+                            <h2 className="text-xl font-bold tracking-tight text-[#1A1208]">
+                                New Group
+                            </h2>
+                            <p className="text-sm font-medium text-[#7A6A56] mt-1">
                                 Create a space for your team
                             </p>
                         </div>

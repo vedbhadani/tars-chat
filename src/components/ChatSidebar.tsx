@@ -10,7 +10,6 @@ import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Logo } from "./Logo";
 
 type SidebarTab = "chats" | "people";
 
@@ -91,8 +90,18 @@ export function ChatSidebar() {
         <aside className="flex h-full w-full md:w-80 flex-col bg-[#F2EDE4] border-r border-[#E8E0D4]">
             {/* App brand + user header + tabs */}
             <div className="bg-[#FFFFFF] border-b border-[#E8E0D4]">
-                <div className="flex items-center justify-between px-5 py-5 pb-2">
-                    <Logo size="md" />
+                <div className="flex items-center gap-3 px-5 py-5 pb-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#B5784A] text-lg shadow-sm">
+                        💬
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold tracking-tight text-[#1A1208]">
+                            {isLoaded && user ? (user.fullName || user.username || "User") : "TarsChat"}
+                        </p>
+                        <p className="truncate text-[11px] text-[#7A6A56]">
+                            {user?.primaryEmailAddress?.emailAddress ?? (isLoaded ? "Personal Account" : "Loading...")}
+                        </p>
+                    </div>
                     <UserButton
                         appearance={{
                             elements: {
@@ -101,34 +110,29 @@ export function ChatSidebar() {
                         }}
                     />
                 </div>
-                <div className="px-5 pb-3">
-                    <p className="truncate text-[11px] text-[#7A6A56] font-medium opacity-70">
-                        {user?.primaryEmailAddress?.emailAddress ?? (isLoaded ? "Personal Account" : "Loading...")}
-                    </p>
-                </div>
-            </div>
 
-            {/* Pill Tab Switcher */}
-            <div className="px-5 pb-4">
-                <div className="flex items-center rounded-full bg-[#F2EDE4] p-1">
-                    <button
-                        onClick={() => { setActiveTab("chats"); setSearchQuery(""); }}
-                        className={`flex-1 rounded-full py-2 text-xs font-bold tracking-wider transition-all duration-300 ${activeTab === "chats"
-                            ? "bg-[#FFFFFF] text-[#B5784A] shadow-[0_1px_4px_rgba(0,0,0,0.07)]"
-                            : "text-[#7A6A56] hover:text-[#1A1208]"
-                            }`}
-                    >
-                        Chats
-                    </button>
-                    <button
-                        onClick={() => { setActiveTab("people"); setSearchQuery(""); }}
-                        className={`flex-1 rounded-full py-2 text-xs font-bold tracking-wider transition-all duration-300 ${activeTab === "people"
-                            ? "bg-[#FFFFFF] text-[#B5784A] shadow-[0_1px_4px_rgba(0,0,0,0.07)]"
-                            : "text-[#7A6A56] hover:text-[#1A1208]"
-                            }`}
-                    >
-                        People
-                    </button>
+                {/* Pill Tab Switcher */}
+                <div className="px-5 pb-4">
+                    <div className="flex items-center rounded-full bg-[#F2EDE4] p-1">
+                        <button
+                            onClick={() => { setActiveTab("chats"); setSearchQuery(""); }}
+                            className={`flex-1 rounded-full py-2 text-xs font-bold tracking-wider transition-all duration-300 ${activeTab === "chats"
+                                ? "bg-[#FFFFFF] text-[#B5784A] shadow-[0_1px_4px_rgba(0,0,0,0.07)]"
+                                : "text-[#7A6A56] hover:text-[#1A1208]"
+                                }`}
+                        >
+                            Chats
+                        </button>
+                        <button
+                            onClick={() => { setActiveTab("people"); setSearchQuery(""); }}
+                            className={`flex-1 rounded-full py-2 text-xs font-bold tracking-wider transition-all duration-300 ${activeTab === "people"
+                                ? "bg-[#FFFFFF] text-[#B5784A] shadow-[0_1px_4px_rgba(0,0,0,0.07)]"
+                                : "text-[#7A6A56] hover:text-[#1A1208]"
+                                }`}
+                        >
+                            People
+                        </button>
+                    </div>
                 </div>
             </div>
 

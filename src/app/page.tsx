@@ -4,7 +4,6 @@ import {
   SignInButton,
   SignUpButton,
 } from "@clerk/nextjs";
-import { Logo } from "@/components/Logo";
 
 export default async function HomePage() {
   const { userId } = await auth();
@@ -32,10 +31,17 @@ export default async function HomePage() {
         <div className="relative">
           {/* Brand */}
           <div className="mb-10 flex flex-col items-center gap-5 text-center">
-            <Logo size="xl" className="flex-col !gap-5" />
-            <p className="text-sm font-medium text-[#7A6A56]">
-              Connect and collaborate <span className="text-[#B5784A] font-semibold">seamlessly</span>
-            </p>
+            <div className="flex h-18 w-18 items-center justify-center rounded-2xl bg-[#B5784A] text-4xl shadow-lg shadow-[#B5784A]/20 ring-1 ring-[#B5784A]/20">
+              💬
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold tracking-tight text-[#1A1208]">
+                TarsChat
+              </h1>
+              <p className="text-sm font-medium text-[#7A6A56]">
+                Connect and collaborate <span className="text-[#B5784A] font-semibold">seamlessly</span>
+              </p>
+            </div>
           </div>
 
           {/* Action Buttons */}
