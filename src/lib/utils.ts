@@ -17,19 +17,13 @@ export function formatTimestamp(timestamp: number): string {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-export function formatMessageTimestamp(timestamp: number): string {
-  const date = new Date(timestamp);
-  return date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-}
-
 /**
- * Format timestamp for the chat date dividers (e.g., "Today", "Yesterday", "Mar 5")
+ * Format timestamp according to Tars chat specifications:
+ * - Today: "2:34 PM"
+ * - This year: "Feb 15, 2:34 PM"
+ * - Different year: "Feb 15, 2023, 2:34 PM"
  */
-export function formatDateSeparator(timestamp: number): string {
+export function formatMessageTimestamp(timestamp: number): string {
   const date = new Date(timestamp);
   const now = new Date();
 
@@ -38,24 +32,29 @@ export function formatDateSeparator(timestamp: number): string {
     date.getMonth() === now.getMonth() &&
     date.getFullYear() === now.getFullYear();
 
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  const isYesterday =
-    date.getDate() === yesterday.getDate() &&
-    date.getMonth() === yesterday.getMonth() &&
-    date.getFullYear() === yesterday.getFullYear();
-
   const isThisYear = date.getFullYear() === now.getFullYear();
 
-  if (isToday) return "Today";
-  if (isYesterday) return "Yesterday";
+  const timeString = date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
 
-  const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
-  if (!isThisYear) {
-    options.year = "numeric";
+  if (isToday) {
+    return timeString;
   }
 
-  return date.toLocaleDateString("en-US", options);
+  const monthDayString = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+
+  if (isThisYear) {
+    return `${monthDayString}, ${timeString}`;
+  }
+
+  const yearString = date.getFullYear();
+  return `${monthDayString}, ${yearString}, ${timeString}`;
 }
 
 /**
